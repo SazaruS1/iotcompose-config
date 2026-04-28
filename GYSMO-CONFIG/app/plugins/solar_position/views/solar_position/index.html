@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+{% block title %}Position du Soleil{% endblock %}
+
+{% block content %}
+<h1>Position du Soleil</h1>
+
+<div>Ce Plugin publie la position du Soleil dans le ciel local toute les 10 secondes</div>
+
+<div>
+    <ul>
+        <li>Longitude: {{ lon }}</li>
+        <li>Latitude:  {{ lat }}</li>
+    </ul>
+    <a href="configure">Configurer</a>
+</div>
+<BR>
+<div>
+    <p>Dernière valeurs publiées:</p>
+    <ul>
+        <li>Heure locale: {# {{ moment(last_ts).format('HH:mm:ss')}} {{ moment(last_ts).fromNow(refresh=True)}} #} TODO</li>
+        <li>Décalage par rapport à TU: {#  {{ moment(last_ts).format('Z')}} #} TODO</li>
+        <li>Azimut : {{ "%.2f"|format(last_az)}}</li>
+        <li>Elevation : {{ "%.2f"|format(last_el) }}</li>
+        <a href="">Actualiser</a>
+    </ul>
+</div>
+
+<div>La tache a été exécutée à {{ last }} [<a href="trig">Déclencher</a>]</div>
+
+
+{% endblock %}

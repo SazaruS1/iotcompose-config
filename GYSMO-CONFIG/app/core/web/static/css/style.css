@@ -1,0 +1,91 @@
+body {
+    width: 100%;
+}
+
+
+/* Styles de l'overlay */
+.overlay {
+    position: fixed; /* Couvre tout l'écran */
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5); /* Couleur grisâtre semi-transparente */
+    z-index: 1050; /* Assure que l'overlay est au-dessus de tout */
+}
+
+/* Gestion des FLASHs */
+
+#flash-container {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 9999;
+}
+
+.flash-bubble {
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    transform: translateX(100%);
+    animation: slideIn 0.4s forwards, fadeOut 0.5s ease forwards 3s;
+}
+
+/* Couleurs selon le type */
+.flash-bubble.success {
+    background-color: #28a745;
+}
+
+/* Vert */
+.flash-bubble.error {
+    background-color: #dc3545;
+}
+
+/* Rouge */
+.flash-bubble.warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+/* Jaune */
+.flash-bubble.info {
+    background-color: #17a2b8;
+}
+
+/* Bleu */
+
+@keyframes slideIn {
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+}
+/* Gestion des FLASHs */
+
+
+/* Boutons avec des confirmation (danger) */
+a.confirm {
+  color: #dc3545;            /* rouge Bootstrap */
+  text-decoration: none;     /* pas de soulignement */
+  font-weight: 500;          /* léger renforcement */
+  transition: color 0.2s, text-decoration 0.2s;
+}
+
+a.confirm:hover {
+  color: #b02a37;            /* rouge plus sombre au survol */
+  text-decoration: underline;
+}
+/* Boutons avec des confirmation (danger) */

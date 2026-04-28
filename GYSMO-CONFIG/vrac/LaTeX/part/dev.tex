@@ -1,0 +1,203 @@
+\chapter{Services de base}
+
+Les services de bases sont implémentés dans le package \lstinline|core|. Ils sont nécessaire au fonctionnement de l'application et se configurent par l'intermédiaire de variables d'environnement (et/ou du fichier \lstinline|.env|).
+
+\section{\lstinline|commands|}
+
+Non implémenté pour le moment.
+
+\section{\lstinline|datastore|}
+
+Permet l'accès aux données dans une optique de traitements <<externes>> ie pour lesquels les données dont identifiées par leur nom (et pas leur identifiant unique).
+
+\subsection{\lstinline|pull|} retourne le dictionnaire des données actuelles sous la forme \lstinline|{ nom: valeur}|
+
+\subsection{\lstinline|push|} reçoit un dictionnaire de la la forme \lstinline|{ nom: valeur}| et déclenche les traitements nécessaires.
+
+La première étapes consiste à récupérer le device correspondant au nom puis:
+\begin{itemize}
+	\item si le device est une source de donnée (capteur), la valeur est transmise sur le topic \lstinline|uid/data|,qui décenchera ensuite la mémorisation de la valeur (cf. plus bas).
+	\ieme si le device est un actionneur alors la valeur est mémorisé en base et publié sur le topic \lstinline|uid/action| pour traitement par le device (actionneur).
+\end{itemize}
+
+{\color{red}L'évolution prévue du code impliquera qu'un device actionneur devra publier son état actuel de façon périodique et se comportera donc nécessairement comme un capteur. Le device devra donc évoluer pour mémoriser la dernières valeurs reçue (sens D->G) et publiée (sens G->D). De même, on devra mémoriser l'historique des deux valeurs.}
+
+{\color{green}On modifie la table DEVICE pour mémoriser la dernière valeurs GET et la dernière valeur SET. Dans la table RECORD, on  ajoute un booléen pour séparer les valeur SET/GET (ex: action).
+Attention car pour le moment, la <<valeur>> associée à une variable est défaut la valeur lue ou la valeur demandée. Pour un actionneur, il faut ajouter un moyen d'accéder à la valeur réelle et/ou la valeur demandée. Je trouver personnellement plus logique de considérer la "valeur" comme celle retournée par le device. Il faudra peut-être trouver une astuce pour remonter aux valeurs de l'action demandée.}
+
+
+
+\subsection{\lstinline|get_last|}
+
+Retourne un tuple comportant le nom, la valeur et la date de la donnée dont le nom est passé en paramètre.
+
+{\color{red}Cette fonction devrait être supprimée et fusionnée avec la méthode \lstinline|pull| en y ajoutant le paramètre facultatif.}{\color{green}Fait}.
+
+\section{\lstinline|mail|}
+
+Permet l'expédition de mails. La configuration se fait par l'intermédiaire des variables suivantes:
+\begin{itemize}
+	\item \lstinline|MAIL_SERVER|
+	\item \lstinline|MAIL_PORT|
+	\item \lstinline|MAIL_USERNAME|
+	\item \lstinline|MAIL_PASSWORD|
+	\item \lstinline|MAIL_USE_TLS|
+	\item \lstinline|MAIL_USE_SSL|
+	\item \lstinline|MAIL_SENDER|
+	\item \lstinline|MAIL_SUBJECT|
+	\item \lstinline|MAIL_RECIPIENTS|
+\end{itemize}
+
+\subsection{\lstinline|send|}
+
+Permet d'expédier un message. Le message HTML est construite à l'aide du template défini dans \lstinline|core/mail/templates|.
+
+
+\section{\lstinline|models|}
+
+Déclaration de la base de données et de toutes les entités manipulées.
+
+La sélection/configuration du SGBDD est réalisé dans le fichier \lstinline|core/models/common.py| et dépend (selon le type) des variables d'environnement suivante:
+%
+\begin{itemize}
+	\item \lstinline|DB_FILE| (spécifique à SQLITE)
+	\item \lstinline|DB_NAME|
+	\item \lstinline|DB_URL|
+	\item \lstinline|DB_PORT|
+	\item \lstinline|DB_USER|
+	\item \lstinline|DB_PASSWORD|
+\end{itemize}
+
+
+Les modèles/entités sont à décrire ici.
+
+\section{\lstinline|mqtt|}
+
+Gère la communication MQTT. Rappelons les différents topics:
+\begin{itemize}
+	\item \lstinline|<uid>/data|: message émis par un device à l'attention de Gysmo. La réception de ce message génère la mémorisation de la valeur, ainsi éventuellement l'exécution d'une tâche.
+	\item \lstinline|<uid>/action|: message émis par Gysmo à l'attention d'un device afin de modifier son état.
+	\item \lstinline|<uid>/command|: message émis par Gizmo à l'attention d'un device afin de modifier sa configuration.
+	\item \lstinline|system/register| message transmis par un device vers Gysmo afin de se déclarer (généralement s'il est inconnu).
+\end{itemize}
+
+{\color{red}Ce dernier message est à réfléchir dans la mesure où la configuration d'un device peut être modifiée dynamiquement. Est-ce que ce topic pourrait servir de validation, en acceptant la réception d'une information partielle ?}
+
+
+%
+%
+%\section{Structure d'un Plugin}
+%
+%
+%Les plugins permettent d'étendre le fonctionnalités de GYSMO d'une façon modulaire.
+%\begin{itemize}
+%	\item Il peut être composé d'une application web (webapp dans la suite).
+%	\item Il comporte zéro, une ou plusieurs tâches (task) dont l'exécution est contrôlée par GYSMO. Une tâche peut être déclenché périodiquement et/ou en réponse à la modification d'une variable.
+%	\item Il peut définir un ensemble de paramètres, mémorisés en base, qui permet sa configuration.
+%\end{itemize}
+%
+%
+%\section{Classes principales}
+%
+%L'implémentation d'un plugin repose sur la création d'une classe qui hérite de la classe core.Plugin.
+%
+%Les attributs (qui doivent être fournis au constructeur) sont:
+%\begin{description}
+%	\item[pid] L'identifiant unique du plugin (string)
+%	\item[prefix] Le préfixe de la webapp
+%	\item[menu\_name] L'entrée du menu qui permet d'accéder à la webapp
+%\end{description}
+%Ces attributs sont automatiquement récupérer depuis le fichier plugins.yml au lancement de GYSMO.
+
+
+\subsection{Fonctionnement interne}
+
+Chaque topic est associé à une fonction qui prend comme arguments le nom du topic et la payload (chaine).
+
+Le topic est ensuite convertie en regex de façon à appeler la fonction correspondante au bon topic. Cette approche permet d'étendre les traitements MQTT à des cas non encore définis (comme l'interfacage avec TTN par exemple).
+
+
+Le module MQTT souscrit à minima à deux topics qui sont \lstinline|+/data| et \lstinline|system/register|. Le premier déclenche la mémorisation de la valeur transmise si le device est connu et actif. Si le capteur n'est pas connu, un message \lstinline|REGISTER| est transmis au device correspondant via le topic \lstinline|uid/command|. Si le device est connu mais non actif, le message est ignoré. Le second permet de créer un device en base, qui devra être validée par un utilisateur.
+
+
+\section{\lstinline|plugin|}
+
+Ce module gère les plugins (instances d'une sous classe \lstinline|plugin|).
+
+Un plugin permet d'ajouter des fonctionnalités à GYSMO par l'intermédiaire d'une interface web (webapp) et de tâches (task) déclenchées périodiquement et/ou suite à la modification d'une donnée. Webapp et task sont facultatives.
+
+
+\subsection{Caractéristiques d'un plugin}
+
+Un plugin est défini par:
+\begin{itemize}
+	\item \lstinline|pid| un identifiant unique
+	\item \lstinline|prefix| un chemin de base pour l'application web associée
+	\item \lstinline|menu_name| le texte de l'entrée du menu dans l'interface web principale.
+\end{itemize}
+
+La classe <<mère>>\lstinline|Plugin| est abstraite et certaines de ces méthodes doivent être surchargées:
+\begin{itemize}
+	\item\lstinline|start()| qui est lancée au démarrage du système. Ne fait rien par défaut
+	\item\lstinline|stop()| qui est lancée à l'arrêt du système. Ne fait rien par défaut
+	\item\lstinline|webapps()| Retourne la liste des webapps définies par le plugin. Retourne une liste vide par défaut.
+	\item\lstinline|tasks()| Retourne la liste des tasks définies par le plugin. Retourne une liste vide par défaut.
+\end{itemize}
+
+{\color{red}Pourquoi la méthode \lstinline|sync| n'est pas à ce niveau ?}
+
+
+\subsection{Service associé}
+
+Le service gère les plugins. Il permet en particuler d'enregister un plugin à l'aide de la méthode \lstinline|add|.
+
+Les méthodes \lstinline|start| et \lstinline|stop| ne font qu'appeler les méthodes des plugins référencées. La méthode \lstinline|sync| appelle la méthode correspondante des tasks.
+
+{\color{red}On a ici un beau petit mélange qu'il va falloir corriger, notamment:
+	\begin{itemize}
+		\item la méthode sync doit appartenir à plugin et non a task.
+		\item l'ajout ne doit pouvoir se faire que si le système n'a pas démarré
+		\item Est-ce que plugin ne devrait il pas fusionner avec system ?
+	\end{itemize}
+}
+{\color{green}Nettoyage effectuée. C'est un peu plus propre, jusqu'à la prochaine idée}
+
+
+\section{\lstinline|system|}
+
+Gère les actions de haut niveau (démmarrage et arret) ainsi que l'ajout de plugin (?) via le fichier de configuration (plugin.yaml).
+
+{\color{red}La méthode \lstinline|add_plugin| n'a rien à faire ici}{\color{green}Fait}
+
+\section{\lstinline|task|}
+
+Le service gère l'exécution des tâaches.
+
+\subsection{\lstinline|Caractéristique d'une Task|}
+
+Une tâche est définie par son identifiant unique (id, String) et l'identifiant du plugin auquel elle est ratachée (plugid, string).
+
+Le déclenchement peut être forcée (méthode \lstinline|fire|) mais également périodique (\lstinline|set_period|) où à la modification d'un paramètres (\lstinline|add_regex|).
+
+La traitement à proprement dit est défini en redéfinissant la méthode \lstinline|execute| (obligatoire).
+
+les autres méthodes (du cycle de vie) sont \lstinline|start|, \lstinline|stop| et \lstinline|sync| {\color{red}Pas certain que cela doivent être ici...}
+
+
+\section{\lstinline|web|}
+
+Gère le serveur web interne et dont l'exécution des webapps. Jinga est utilisé comme moteur de templating. Les variables globales définies sont:
+\begin{itemize}
+	\item\lstinline|__ts__| : l'instant courant
+	\item\lstinline|__pid__| : l'identifiant unique du plugin si pertinent
+	\item\lstinline|__menu__| : l'entrée menu associé au plugin si pertinent.
+\end{itemize}
+Deux méthodes ont également été ajoutée:
+\begin{itemize}
+	\item\lstinline|dynamic_url_for| :  retourne l'url relative à la webapp du plugin
+	\item\lstinline|dynamic_url_or_hash_for| :  idem si dessus mais retourne un \lstinline|#| si la route n'existe pas.
+\end{itemize}
+
+Ces deux méthode de template sont nécessaire car le point de montage des webapp (blueprint) n'est connu qu'après le démarrage du serveru web. Elles sont également utilisables dans le code.
+
+Par commodité, l'identifiant du plugin (plugid) est ajouté à l'objet request.

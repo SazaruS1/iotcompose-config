@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StigHub - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #bc6a7c 0%, #bc6a7c 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            letter-spacing: 2px;
+            font-weight: 800;
+        }
+
+        .header .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .header .tagline {
+            font-size: 0.95em;
+            opacity: 0.7;
+            font-style: italic;
+        }
+
+        /* ARCHITECTURE HORIZONTALE */
+        .architecture {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 80px;
+            padding: 40px 30px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
+            position: relative;
+            flex-wrap: wrap;
+        }
+
+        /* Ligne de flux */
+        .flow-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0.2) 100%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .architecture-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .architecture-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title {
+            color: white;
+            font-size: 0.75em;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.9;
+            text-align: center;
+            min-height: 30px;
+        }
+
+        .bubbles-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .bubble {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+            position: relative;
+            text-decoration: none;
+            color: inherit;
+            text-align: center;
+            padding: 12px;
+        }
+
+        /* Indicateur de statut */
+        .status-indicator {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 8px rgba(0,0,0,0.3);
+            transition: all 0.4s ease;
+        }
+
+        .status-indicator.online {
+            background-color: #2ECC71;
+            box-shadow: 0 0 8px rgba(46, 204, 113, 0.6), 0 0 12px rgba(46, 204, 113, 0.3);
+            animation: pulse-online 2s infinite;
+        }
+
+        .status-indicator.warning {
+            background-color: #F39C12;
+            box-shadow: 0 0 8px rgba(243, 156, 18, 0.6), 0 0 12px rgba(243, 156, 18, 0.3);
+            animation: pulse-warning 1.5s infinite;
+        }
+
+        .status-indicator.offline {
+            background-color: #E74C3C;
+            box-shadow: 0 0 8px rgba(231, 76, 60, 0.6), 0 0 12px rgba(231, 76, 60, 0.3);
+        }
+
+        @keyframes pulse-online {
+            0%, 100% {
+                box-shadow: 0 0 8px rgba(46, 204, 113, 0.6), 0 0 12px rgba(46, 204, 113, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 12px rgba(46, 204, 113, 0.8), 0 0 18px rgba(46, 204, 113, 0.5);
+            }
+        }
+
+        @keyframes pulse-warning {
+            0%, 100% {
+                box-shadow: 0 0 8px rgba(243, 156, 18, 0.6), 0 0 12px rgba(243, 156, 18, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 12px rgba(243, 156, 18, 0.8), 0 0 18px rgba(243, 156, 18, 0.5);
+            }
+        }
+
+        /* Tooltip du statut */
+        .status-tooltip {
+            position: absolute;
+            bottom: -35px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.7em;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+            font-weight: 600;
+        }
+
+        .bubble:hover .status-tooltip {
+            opacity: 1;
+        }
+
+        .bubble:hover {
+            transform: scale(1.12) translateY(-8px);
+            box-shadow: 0 18px 40px rgba(0,0,0,0.3);
+            border-color: rgba(255,255,255,0.8);
+        }
+
+        .bubble-icon {
+            font-size: 2.2em;
+            margin-bottom: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .bubble:hover .bubble-icon {
+            transform: scale(1.15) rotate(10deg);
+        }
+
+        .bubble-name {
+            font-size: 0.75em;
+            font-weight: 700;
+            color: #333;
+            line-height: 1;
+        }
+
+        .bubble-port {
+            font-size: 0.6em;
+            color: #333;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        .bubble-address {
+            font-size: 0.55em;
+            color: #333;
+            margin-top: 2px;
+            font-family: 'sans Serif', monospace;
+            word-break: break-all;
+            line-height: 1.2;
+        }
+
+        .bubble-dns {
+            font-size: 0.55em;
+            color: #333;
+            margin-top: 2px;
+            font-family: 'sans Serif', monospace;
+            font-style: italic;
+        }
+
+        /* Couleurs des bulles par catégorie */
+        .bubble.gateway {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
+            color: white;
+        }
+
+        .bubble.gateway .bubble-name,
+        .bubble.gateway .bubble-port,
+        .bubble.gateway .bubble-address,
+        .bubble.gateway .bubble-dns {
+            color: white;
+        }
+
+        .bubble.core {
+            background: linear-gradient(135deg, #4ECDC4 0%, #44B7B0 100%);
+            color: white;
+        }
+
+        .bubble.core .bubble-name,
+        .bubble.core .bubble-port,
+        .bubble.core .bubble-address,
+        .bubble.core .bubble-dns {
+            color: white;
+        }
+
+        .bubble.messaging {
+            background: linear-gradient(135deg, #e58e54 100%, #efae7d 100%);
+            color: white;
+        }
+
+        .bubble.messaging .bubble-name,
+        .bubble.messaging .bubble-port,
+        .bubble.messaging .bubble-address {
+            color: white;
+        }
+
+        .bubble.device {
+            background: linear-gradient(135deg, #A8E6CF 0%, #56C596 100%);
+            color: white;
+        }
+
+        .bubble.device .bubble-name,
+        .bubble.device .bubble-port,
+        .bubble.device .bubble-address,
+        .bubble.device .bubble-dns {
+            color: white;
+        }
+
+        .bubble.tap200 {
+            background: linear-gradient(135deg, #5DADE2 0%, #3498DB 100%);
+            color: white;
+        }
+
+        .bubble.tap200 .bubble-name,
+        .bubble.tap200 .bubble-port,
+        .bubble.tap200 .bubble-address,
+        .bubble.tap200 .bubble-dns {
+            color: white;
+        }
+
+        .bubble.sensecap {
+            background: linear-gradient(135deg, #5DADE2 0%, #3498DB 100%);
+            color: white;
+        }
+
+        .bubble.sensecap .bubble-name,
+        .bubble.sensecap .bubble-port,
+        .bubble.sensecap .bubble-address,
+        .bubble.sensecap .bubble-dns {
+            color: white;
+        }
+
+        .bubble.management {
+            background: linear-gradient(135deg, #FF9FF3 0%, #F368E0 100%);
+            color: white;
+        }
+
+        .bubble.management .bubble-name,
+        .bubble.management .bubble-port,
+        .bubble.management .bubble-address,
+        .bubble.management .bubble-dns {
+            color: white;
+        }
+
+        /* Flèches de flux */
+        .flow-arrow {
+            color: white;
+            font-size: 1.5em;
+            opacity: 0.5;
+            flex-shrink: 0;
+            margin: 0 5px;
+        }
+
+        .flow-arrow-down {
+            color: white;
+            font-size: 1.5em;
+            opacity: 0.5;
+            margin: 5px 0;
+        }
+
+        .legend {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            padding: 25px;
+            border-radius: 20px;
+            margin-top: 40px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .legend h3 {
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .legend-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9em;
+        }
+
+        .legend-color {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .legend-color.gateway {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
+        }
+
+        .legend-color.core {
+            background: linear-gradient(135deg, #4ECDC4 0%, #44B7B0 100%);
+        }
+
+        .legend-color.messaging {
+            background: linear-gradient(135deg, #df6a16 0%, #e07211 100%);
+        }
+
+        .legend-color.device {
+            background: linear-gradient(135deg, #A8E6CF 0%, #56C596 100%);
+        }
+
+        .legend-color.tap200 {
+            background: linear-gradient(135deg, #5DADE2 0%, #3498DB 100%);
+        }
+
+        .legend-color.sensecap {
+            background: linear-gradient(135deg, #5DADE2 0%, #3498DB 100%);
+        }
+
+        .legend-color.management {
+            background: linear-gradient(135deg, #FF9FF3 0%, #F368E0 100%);
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            opacity: 0.8;
+            margin-top: 50px;
+            padding: 20px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .data-flow {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 40px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            max-width: 1000px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .data-flow h3 {
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .flow-item {
+            padding: 15px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid;
+            color: white;
+        }
+
+        .flow-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .flow-item strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .flow-item code {
+            font-size: 0.85em;
+            background: rgba(0,0,0,0.3);
+            padding: 8px 12px;
+            border-radius: 5px;
+            display: block;
+            word-break: break-all;
+            font-family: 'sans Serif', monospace;
+        }
+
+        .flow-item.uplink {
+            border-left-color: #4ECDC4;
+        }
+
+        .flow-item.automation {
+            border-left-color: #FF9FF3;
+        }
+
+        .flow-item.downlink {
+            border-left-color: #FFD93D;
+        }
+
+        .flow-item.security {
+            border-left-color: #FF6B6B;
+        }
+
+        @media (max-width: 1200px) {
+            .bubble {
+                width: 120px;
+                height: 120px;
+            }
+
+            .bubble-icon {
+                font-size: 1em;
+            }
+
+            .architecture {
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.2em;
+            }
+
+            .architecture {
+                gap: 15px;
+                padding: 30px 15px;
+            }
+
+            .bubble {
+                width: 110px;
+                height: 110px;
+            }
+
+            .bubble-icon {
+                font-size: 1em;
+            }
+
+            .flow-arrow,
+            .flow-arrow-down {
+                font-size: 1.2em;
+            }
+
+            .section-title {
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>StigHub</h1>
+        <p class="subtitle">Architecture domotique IoT</p>
+        <p class="tagline">L'ensemble des services interconnectés du réseau </p>
+    </div>
+
+    <!-- ARCHITECTURE VISUELLE -->
+    <div style="max-width: 1400px; margin: 0 auto;">
+        <div class="architecture">
+            <!-- COLONNE 1: DHCP -->
+            <div class="architecture-column">
+                <div class="architecture-section">
+                    <div class="section-title">⚙️ DHCP</div>
+                    <div class="bubbles-container">
+                        <a href="http://192.168.1.1/admin/" target="_blank" class="bubble gateway" data-service="pihole" data-url="http://192.168.1.1/admin/">
+                            <div class="status-indicator online"></div>
+                            <div class="status-tooltip">En ligne</div>
+                            <div class="bubble-icon">⚙️</div>
+                            <div class="bubble-name">Pi-Hole</div>
+                            <div class="bubble-port">80/443</div>
+                            <div class="bubble-dns">ap.stigpi</div>
+                            <div class="bubble-address">192.168.1.1/admin</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-arrow">→</div>
+
+            <!-- COLONNE 2: MESSAGING -->
+            <div class="architecture-column">
+                <div class="architecture-section">
+                    <div class="section-title">💬 Message Broker</div>
+                    <div class="bubbles-container">
+                        <a href="http://192.168.1.1:1883" target="_blank" class="bubble messaging" data-service="mqtt" data-url="http://192.168.1.1:1883">
+                            <div class="status-indicator online"></div>
+                            <div class="status-tooltip">En ligne</div>
+                            <div class="bubble-icon">💬</div>
+                            <div class="bubble-name">MQTT Mosquitto</div>
+                            <div class="bubble-port">1883</div>
+                            <div class="bubble-address">192.168.1.1:1883</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-arrow">→</div>
+
+            <!-- COLONNE 3: DOMOTIQUE + LORAWAN -->
+            <div class="architecture-column">
+                <div class="architecture-section">
+                    <div class="section-title">🏠 Domotique</div>
+                    <div class="bubbles-container">
+                        <a href="http://192.168.1.1:8123" target="_blank" class="bubble management" data-service="homeassistant" data-url="http://192.168.1.1:8123">
+                            <div class="status-indicator online"></div>
+                            <div class="status-tooltip">En ligne</div>
+                            <div class="bubble-icon">🏠</div>
+                            <div class="bubble-name">Home Assistant</div>
+                            <div class="bubble-port">8123</div>
+                            <div class="bubble-dns">ap.stighome</div>
+                            <div class="bubble-address">192.168.1.1:8123</div>
+                        </a>
+                    </div>
+                </div>
+                <div class="architecture-section">
+                    <div class="bubbles-container">
+                        <a href="http://192.168.1.1:8080" target="_blank" class="bubble management" data-service="chirpstack" data-url="http://192.168.1.1:8080">
+                            <div class="status-indicator online"></div>
+                            <div class="status-tooltip">En ligne</div>
+                            <div class="bubble-icon">📶</div>
+                            <div class="bubble-name">ChirpStack</div>
+                            <div class="bubble-port">8080</div>
+                            <div class="bubble-dns">ap.stigchirp</div>
+                            <div class="bubble-address">192.168.1.1:8080</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-arrow">→</div>
+
+            <!-- COLONNE 4: APPAREILS -->
+            <div class="architecture-column">
+                <div class="architecture-section">
+                    <div class="section-title">🔌 Appareils</div>
+                    <div class="bubbles-container">
+                        <a href="http://192.168.1.3" target="_blank" class="bubble tap200" data-service="tap200" data-url="http://192.168.1.3">
+                            <div class="status-indicator online"></div>
+                            <div class="status-tooltip">En ligne</div>
+                            <div class="bubble-icon">🔌</div>
+                            <div class="bubble-name">TAP200</div>
+                            <div class="bubble-port">HTTP</div>
+                            <div class="bubble-dns">ap.stigtap</div>
+                            <div class="bubble-address">192.168.1.3</div>
+                        </a>
+                    </div>
+                </div>
+                <div class="architecture-section">
+                    <div class="bubbles-container">
+                        <a href="http://192.168.1.49" target="_blank" class="bubble tap200" data-service="sensecap" data-url="http://192.168.1.49">
+                            <div class="status-indicator online"></div>
+                            <div class="status-tooltip">En ligne</div>
+                            <div class="bubble-icon">⚡</div>
+                            <div class="bubble-name">SenseCAP M2</div>
+                            <div class="bubble-port">HTTP</div>
+                            <div class="bubble-dns">ap.stigsense</div>
+                            <div class="bubble-address">192.168.1.49</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flow-arrow">→</div>
+
+
+            <!-- COLONNE 5: CAPTEURS -->
+            <div class="architecture-column">
+                <div class="architecture-section">
+                    <div class="section-title">🌡️ Capteurs</div>
+                    <div class="bubbles-container">
+                        <div class="bubble device" style="cursor: default; opacity: 0.95;">
+                            <div class="bubble-icon">🌡️</div>
+                            <div class="bubble-name">LHT65</div>
+                            <div class="bubble-port">LoRa</div>
+                        </div>
+                    </div>
+                </div>
+                    <div class="bubbles-container">
+                        <a href="http://ap.stigsense" target="_blank" class="bubble device" data-service="dummy">
+                            <div class="status-indicator warning"></div>
+                            <div class="status-tooltip">Non configuré</div>
+                            <div class="bubble-icon">🌡️</div>
+                            <div class="bubble-name"> Dummy</div>
+                            <div class="bubble-port">HTTP</div>
+                            <div class="bubble-dns">Todo</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer" style="text-align: center; ">
+            <p>StigHub © 2026 | Hub | Architecture IoT | Arruzas Simon </p>
+            <p style="font-size: 0.95em; margin-top: 10px; opacity: 0.6;">De la sécurité à l'IoT - Tous les services interconnectés en flux logique</p>
+        </div>
+    </div>
+
+    <script>
+        // Configuration des services et leurs URLs
+        const serviceStatus = {
+            pihole: { name: 'Pi-Hole', url: 'http://192.168.1.1/admin/', status: 'checking' },
+            mqtt: { name: 'MQTT Mosquitto', url: 'http://192.168.1.1:1883', status: 'checking' },
+            homeassistant: { name: 'Home Assistant', url: 'http://192.168.1.1:8123', status: 'checking' },
+            chirpstack: { name: 'ChirpStack', url: 'http://192.168.1.1:8080', status: 'checking' },
+            tap200: { name: 'TAP200', url: 'http://192.168.1.3', status: 'checking' },
+            sensecap: { name: 'SenseCAP M2', url: 'http://192.168.1.49', status: 'checking' },
+            dummy: { name: 'Dummy', url: 'http://ap.stigsense', status: 'warning' }
+        };
+
+        // Vérifier la disponibilité d'un service
+        async function checkServiceAvailability(service, url) {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 secondes timeout
+                
+                const response = await fetch(url, {
+                    method: 'HEAD',
+                    mode: 'no-cors',
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                return 'online';
+            } catch (error) {
+                // Si erreur de timeout ou de connexion
+                return 'offline';
+            }
+        }
+
+        // Mettre à jour les indicateurs de statut
+        function updateStatusIndicators() {
+            const bubbles = document.querySelectorAll('.bubble[data-service]');
+            
+            bubbles.forEach(bubble => {
+                const service = bubble.dataset.service;
+                const indicator = bubble.querySelector('.status-indicator');
+                const tooltip = bubble.querySelector('.status-tooltip');
+                
+                if (serviceStatus[service]) {
+                    const status = serviceStatus[service].status;
+                    
+                    // Enlever toutes les classes de statut
+                    indicator.classList.remove('online', 'warning', 'offline', 'checking');
+                    // Ajouter la nouvelle classe
+                    indicator.classList.add(status);
+                    
+                    // Mettre à jour le texte du tooltip
+                    switch(status) {
+                        case 'online':
+                            tooltip.textContent = 'En ligne';
+                            break;
+                        case 'warning':
+                            tooltip.textContent = 'Attention';
+                            break;
+                        case 'offline':
+                            tooltip.textContent = 'Hors ligne';
+                            break;
+                        case 'checking':
+                            tooltip.textContent = '⏳ Vérification...';
+                            break;
+                    }
+                }
+            });
+        }
+
+        // Vérifier le statut de tous les services
+        async function checkServicesStatus() {
+            console.log('Vérification des services...');
+            
+            for (const [key, service] of Object.entries(serviceStatus)) {
+                if (key !== 'dummy') { // Ne pas vérifier dummy
+                    const status = await checkServiceAvailability(key, service.url);
+                    serviceStatus[key].status = status;
+                    console.log(`${service.name}: ${status}`);
+                }
+            }
+            
+            updateStatusIndicators();
+        }
+
+        // Ajouter style pour l'état "checking"
+        const style = document.createElement('style');
+        style.textContent = `
+            .status-indicator.checking {
+                background-color: #95A5A6;
+                box-shadow: 0 0 8px rgba(149, 165, 166, 0.6), 0 0 12px rgba(149, 165, 166, 0.3);
+                animation: pulse-checking 1s infinite;
+            }
+            
+            @keyframes pulse-checking {
+                0%, 100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.5;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Animation au chargement
+        window.addEventListener('load', () => {
+            const bubbles = document.querySelectorAll('.bubble');
+            bubbles.forEach((bubble, index) => {
+                bubble.style.animation = `none`;
+                setTimeout(() => {
+                    bubble.style.transition = 'all 0.6s ease';
+                    bubble.style.opacity = '1';
+                }, index * 100);
+            });
+            
+            // Initialiser les indicateurs
+            updateStatusIndicators();
+            
+            // Vérifier le statut des services au chargement
+            setTimeout(checkServicesStatus, 1000);
+            
+            // Revérifier toutes les 30 secondes
+            setInterval(checkServicesStatus, 30000);
+        });
+    </script>
+</body>
+</html>

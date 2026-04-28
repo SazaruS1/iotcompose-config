@@ -1,0 +1,169 @@
+{% extends "layout.html" %}
+{% block title %}Liste des Taches{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block content %}
+
+    <a href="{{  dynamic_url_for('%.restart') }}">Relancer... (pid={{ pid }})</a>
+
+    <input type="hidden" id="csrf_token" value="{{ csrf_token() }}">
+
+    <h1>Liste de Taches</h1>
+
+    {% if tasks is defined and tasks|length %}
+
+        <div class="list-group">
+            {% for t in tasks %}
+                <div class="list-group-item">
+                    <div> uid: <samp>{{ t.uid }}</samp></div>
+                    <div>Dernier déclenchement: <samp>{{ t.last_trig }}</samp></div>
+                    <div>Prochain déclenchement: <samp>{{ t.next_trig }}</samp>
+                        <button class="btn btn-sm btn-primary" onclick="trig('{{t.uid }}')">TRIG</button>
+                    </div>
+                    <div>Période: <samp>{{ t.period }} s</samp></div>
+                    <div>Déclencheur: <samp>{{ t.regex }}</samp></div>
+                    <button class="btn btn-sm btn-warning" onclick="sync('{{t.uid }}')">SYNC</button>
+                    <div class="list-group">
+                        {{ t.params }}
+                        {% for name, value in t.params.items() %}
+                            <div class="list-group-item">
+                                <samp>{{ name }}</samp>=<samp>{{ value }}</samp>
+                                <input class="form-control w-25" id="___{{ t.plugid }}_{{ name }}___" value="{{ value }}">
+                                <button class="btn btn-sm btn-success" onclick="save('{{ t.plugid }}','{{ name }}')">
+                                    SAVE
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="remove('{{ t.plugid }}','{{ name }}')">
+                                    DELETE
+                                </button>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                </div>
+            {% endfor %}
+        </div>
+
+    {% endif %}
+    <a href="/">Retour à la page d'accueil</a>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+
+    <script>
+        const CHANGE_PARAMETER_URL = '{{ dynamic_url_for("%.change_parameter") }}'
+        const DELETE_PARAMETER_URL = '{{ dynamic_url_for("%.delete_parameter") }}'
+        const TRIG_URL = '{{ dynamic_url_for('%.trig') }}'
+        const SYNC_URL = '{{ dynamic_url_for('%.sync') }}'
+
+    </script>
+
+    <script>
+
+        function save(plugid, name) {
+            const val = document.getElementById(`___${plugid}_${name}___`).value;
+
+            const json = JSON.stringify({plugid: plugid, name: name, value: val})
+            const csrfToken = document.getElementById('csrf_token').value;
+
+            fetch(CHANGE_PARAMETER_URL, {
+                method: 'POST', // Méthode HTTP
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: json,
+            })
+
+            showOverlay()
+            saveScrollPosition()
+
+            setTimeout(
+                () => {
+                    window.location.reload();
+                },
+                1000)
+
+        }
+
+
+        function trig(taskid){
+           const json = JSON.stringify({taskid: taskid})
+            const csrfToken = document.getElementById('csrf_token').value;
+
+            fetch(TRIG_URL, {
+                method: 'POST', // Méthode HTTP
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: json,
+            })
+
+            showOverlay()
+            saveScrollPosition()
+
+            setTimeout(
+                () => {
+                    window.location.reload();
+                },
+                1000)
+        }
+        function sync(taskid){
+           const json = JSON.stringify({taskid: taskid})
+            const csrfToken = document.getElementById('csrf_token').value;
+
+            fetch(SYNC_URL, {
+                method: 'POST', // Méthode HTTP
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: json,
+            })
+
+            showOverlay()
+            saveScrollPosition()
+
+            setTimeout(
+                () => {
+                    window.location.reload();
+                },
+                1000)
+        }
+
+
+        function remove(plugid, name) {
+
+            if (!confirm("Confirm ?")) {
+                return
+            }
+
+            const json = JSON.stringify({plugid: plugid, name: name})
+            const csrfToken = document.getElementById('csrf_token').value;
+
+
+            //fetch("https://echo.free.beeceptor.com", {
+            fetch(DELETE_PARAMETER_URL, {
+                method: 'POST', // Méthode HTTP
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: json,
+            })
+
+            showOverlay()
+            saveScrollPosition()
+
+
+            setTimeout(
+                () => {
+                    window.location.reload();
+                },
+                1000)
+
+        }
+    </script>
+{% endblock %}

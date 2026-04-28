@@ -1,0 +1,30 @@
+\babel@toc {french}{}\relax 
+\contentsline {chapter}{\numberline {1}Introduction}{4}{chapter.1}%
+\ttl@starttoc {default@1}
+\contentsline {part}{I\hspace {1em}Manuel de l'utilisateur}{5}{part.1}%
+\contentsline {part}{II\hspace {1em}Manuel du développeur}{7}{part.2}%
+\contentsline {chapter}{\numberline {2}Services de base}{9}{chapter.2}%
+\ttl@stoptoc {default@1}
+\ttl@starttoc {default@2}
+\contentsline {section}{\numberline {2.1}\lstinline |commands|}{9}{section.2.1}%
+\contentsline {section}{\numberline {2.2}\lstinline |datastore|}{9}{section.2.2}%
+\contentsline {subsection}{\numberline {2.2.1}\lstinline |pull|}{9}{subsection.2.2.1}%
+\contentsline {subsection}{\numberline {2.2.2}\lstinline |push|}{9}{subsection.2.2.2}%
+\contentsline {subsection}{\numberline {2.2.3}\lstinline |get_last|}{10}{subsection.2.2.3}%
+\contentsline {section}{\numberline {2.3}\lstinline |mail|}{10}{section.2.3}%
+\contentsline {subsection}{\numberline {2.3.1}\lstinline |send|}{10}{subsection.2.3.1}%
+\contentsline {section}{\numberline {2.4}\lstinline |models|}{10}{section.2.4}%
+\contentsline {section}{\numberline {2.5}\lstinline |mqtt|}{11}{section.2.5}%
+\contentsline {subsection}{\numberline {2.5.1}Fonctionnement interne}{11}{subsection.2.5.1}%
+\contentsline {section}{\numberline {2.6}\lstinline |plugin|}{11}{section.2.6}%
+\contentsline {subsection}{\numberline {2.6.1}Caractéristiques d'un plugin}{11}{subsection.2.6.1}%
+\contentsline {subsection}{\numberline {2.6.2}Service associé}{12}{subsection.2.6.2}%
+\contentsline {section}{\numberline {2.7}\lstinline |system|}{12}{section.2.7}%
+\contentsline {section}{\numberline {2.8}\lstinline |task|}{12}{section.2.8}%
+\contentsline {subsection}{\numberline {2.8.1}\lstinline |Caractéristique d'une Task|}{12}{subsection.2.8.1}%
+\contentsline {section}{\numberline {2.9}\lstinline |web|}{12}{section.2.9}%
+\contentsline {chapter}{\numberline {3}Conclusion}{14}{chapter.3}%
+\ttl@stoptoc {default@2}
+\ttl@starttoc {default@3}
+\contentsline {part}{III\hspace {1em}Exercices}{15}{part.3}%
+\contentsfinish 

@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+{% block title %}Oops{% endblock %}
+
+{% block content %}
+    <h1>Etat de équipements</h1>
+
+ <div class="d-flex align-items-center mt-3 mb-3">
+        <a href="export" class="btn btn-primary btn-sm m-1">Exporter</a>
+    </div>
+
+    <table class="table table-striped">
+        <thead class="table-dark">
+        <th></th>
+        <th>État</th>
+        <th>Action</th>
+        <th></th>
+        </thead>
+        <tbody>
+        {% for d in devices %}
+            <tr>
+                <td>
+                    {{ d.name }} [{{ d.unit }}]
+                </td>
+                <td>
+                    {% if d.last_data_value %}
+                    {{ d.last_data_value }} @ {{ d.last_data_at|format }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if d.last_action_value %}
+                        {{ d.last_action_value }} @ {{ d.last_action_at|format }}
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ dynamic_url_for("%.graph", pk=d.id) }}">GRAPH</a>
+                    <a href="{{ dynamic_url_for("%.table", pk=d.id) }}">TABLE</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+
+{% endblock %}

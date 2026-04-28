@@ -1,0 +1,130 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  My documentation report
+%  Objetive: Explain what I did and how, so someone can continue with the investigation
+%
+% Important note:
+% Chapter heading images should have a 2:1 width:height ratio,
+% e.g. 920px width and 460px height.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[11pt,fleqn,french]{book} % Default font size and left-justified equations
+
+\input{config} % les principaux packages
+\input{styles} % l'adaptation des styles
+\input{listings} % l'adaptation des styles
+
+
+\begin{document}
+
+\let\cleardoublepage\clearpage
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\begin{titlepage}
+
+%\begin{minipage}[c]{0.35\textwidth}
+\begin{center}
+%\includegraphics[width=0.8\textwidth]{img/logoENSGTI}
+\end{center}
+%\end{minipage}
+%\begin{minipage}[c]{0.65\textwidth}
+%\begin{flushleft}
+%  \scshape
+%  {\bfseries\Large ENSGTI} \\
+%	École Nationale Supérieure en \\Génie des Technologies Industrielles
+%\end{flushleft}
+%\end{minipage}
+\vspace{\stretch{3}}
+\begin{center}
+\rule[1em]{0.9\textwidth}{1mm}%
+\Huge\scshape\bfseries
+%{\small \\Ne plus trop avoir l'air bête en parlant de\ldots
+%{\\ou ne pas <<sécher>> en parlant de\ldots}\\}
+%
+\\
+GYSMO\\
+\rule{0.9\textwidth}{1mm}
+\end{center}
+
+\vspace{\stretch{1}}
+\begin{center}
+\LARGE\bfseries
+Stéphane Gibout -- Cédric Arrabie
+\end{center}
+\vspace{\stretch{3}}
+{
+\small
+Fichier : \texttt{\jobname.tex}
+\hfill
+<<Made with \LaTeX !>>
+\hfill
+Version du  \texttt{\number\day/\number\month/\number\year}
+}
+
+
+
+
+\end{titlepage}
+
+
+%%\begingroup
+%%\thispagestyle{empty}
+%%%\AddToShipoutPicture*{\put(0,0){\includegraphics[scale=1.5]{style/magritte}}} % Image background
+%%\centering
+%%\vspace*{5cm}
+%%\par\normalfont\fontsize{35}{35}\sffamily\selectfont
+%%{{\large Ne plus trop avoir l'air bête en parlant de}}\\\textbf{L'Air Humide}\\
+%%{\LARGE }\par % Book title
+%%\vspace*{1cm}
+%%{\Huge \textbf{Stéphane Gibout}\\
+%%ENGSTI - 2019}\par
+%%% Author name
+%%\endgroup
+
+
+%----------------------------------------------------------------------------------------
+%	TABLE OF CONTENTS
+%----------------------------------------------------------------------------------------
+
+\pagestyle{empty} % No headers
+
+\renewcommand\contentsname{Table des Matières}
+\renewcommand{\bibname}{Bibliographie}
+\tableofcontents% Print the table of contents itself
+
+%\cleardoublepage % Forces the first chapter to start on an odd page so it's on the right
+
+\pagestyle{fancy} % Print headers again
+
+
+\setlength\parindent{0ex}
+\setlength\parskip{1ex}
+
+
+\chapter{Introduction}
+
+
+\part{Manuel de l'utilisateur}
+
+\part{Manuel du développeur}
+
+\include{part/dev}
+
+\chapter{Conclusion}
+
+
+\part{Exercices}
+
+\definecolor{ocre}{RGB}{0,0,255}
+
+
+
+
+\end{document}

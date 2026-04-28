@@ -1,0 +1,12 @@
+{
+  "uid": "mymotor1",
+  "description": "angle",
+  "unit": "°",
+  "min_value": -150,
+  "max_value": 150,
+  "delta_value": 0.1,
+  "period": 10,
+  "min_period": 1,
+  "max_period": 60,
+  "read_only": false
+}

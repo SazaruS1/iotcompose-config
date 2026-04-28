@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block title %}Liste des Taches{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block content %}
+
+    REDEMARRAGE EN COURS...
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+
+    <script>
+
+
+        showOverlay()
+
+        setTimeout(
+            () => {
+                window.location.replace("/")
+            },
+                5000
+            )
+
+    </script>
+{% endblock %}

@@ -1,0 +1,48 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: mosquitto
+    volumes:
+      - ./data/mosquitto:/mosquitto/data
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    ports:
+      - "1883:1883"
+    restart: unless-stopped
+
+  smtp4dev:
+    image: rnwood/smtp4dev:v3
+    container_name: smtp4dev
+    ports:
+      - "5001:80"  # Interface web accessible sur http://localhost:5001
+      - "2525:25"  # Port SMTP mappé sur l'hôte (optionnel, pour tests directs)
+    volumes:
+      - ./data/smtp4dev:/smtp4dev  # Persistance des emails capturés (optionnel)
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]  # Vérifie que l'UI est up
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
+
+  gysmo:
+    build: ./app
+    container_name: gysmo
+    working_dir: /app
+    volumes:
+      - ./app:/app
+      - ./data/python:/app/data
+      - ./.env:/app/.env:ro
+      - ./plugins.yaml:/app/plugins.yaml:ro
+    depends_on:
+      mosquitto:
+        condition: service_started  # Attends Mosquitto (comme avant)
+      smtp4dev:
+        condition: service_healthy  # Rend smtp4dev obligatoire et attend qu'il soit prêt
+
+    environment:
+      - FLASK_ENV=development # production
+      - PYTHONUNBUFFERED=1
+      - PYDEVD_DISABLE_FILE_VALIDATION=1  # Désactive la validation pydevd pour supprimer l'avertissement
+    ports:
+      - "8080:8080"
+    command: sh -c "pip install --root-user-action=ignore --disable-pip-version-check watchdog && watchmedo auto-restart -d . -p '*.py' -R -- python -X frozen_modules=off gysmo.py"

@@ -1,0 +1,34 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ name }}{% endblock %}
+
+{% block content %}
+    <h1>Evolution temporelle du capteur {{ name }}</h1>
+
+
+    <table class="table table-striped">
+        <thead class="table-dark">
+        <th>date</th>
+        <th>value</th>
+        <th>Action</th>
+        </thead>
+        <tbody>
+        {% for r in data %}
+        <tr class="{% if r.action %}table-success{% else %}table-danger{% endif %}">
+            <td> {{ r.ts|format }}</td>
+            <td>{{ r.value }}</td>
+            <td>{%  if r.action %}
+                G->D
+            {% else %}
+                D->G
+            {% endif %}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+{% endblock %}

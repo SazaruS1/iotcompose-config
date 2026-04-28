@@ -1,0 +1,9 @@
+{% from 'bootstrap5/form.html' import render_form %}
+{% extends "layout.html" %}
+{% block title %}Moteur de règles{% endblock %}
+
+{% block content %}
+<h1>Chargement de la base de règles [{{ __pid__ }}]</h1>
+
+    {{ render_form(form) }}
+{% endblock %}

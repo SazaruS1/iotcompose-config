@@ -1,0 +1,16 @@
+{% from 'bootstrap5/form.html' import render_form %}
+{% extends "layout.html" %}
+
+{% block title %}Activation d'un device{% endblock %}
+
+{% block content %}
+    <h1>Activation d'un device</h1>
+
+    <p class="pt-5"><strong>{{ message }}</strong></p>
+
+    <div>uid = {{ device.uid }}</div>
+    <a href="{{ dynamic_url_for('%.index')  }}">Retour à la liste</a>
+
+    {{ render_form(form) }}
+{% endblock %}
+

@@ -1,0 +1,93 @@
+{% extends "layout.html" %}
+{% block title %}Liste des Devices{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block content %}
+
+    {% if unknowns is defined and unknowns|length %}
+        <h1>Liste de Devices à valider</h1>
+        <table class="table table-striped">
+            <thead class="table-dark">
+            <tr>
+                <th scope="col">uid</th>
+                <th scope="col">Description</th>
+                <th scope="col">Unité</th>
+                <th scope="col">Création</th>
+                <th scope="col">Action</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for d in unknowns %}
+                <tr>
+                    <td style="border: 1px solid black;"><a
+                            href="{{ dynamic_url_for('%.validate',uid=d.uid) }}">{{ d.uid }}</a></td>
+                    <td style="border: 1px solid black;">{{ d.description }}</td>
+                    <td style="border: 1px solid black;">{{ d.unit }}</td>
+                    <td style="border: 1px solid black;">{{ d.created_at|format}} </td>
+                    <td style="border: 1px solid black;"><a href="{{ dynamic_url_for('%.delete', uid=d.uid) }}" class="confirm">Supprimer</a></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+
+
+    <h1>Liste de Devices validés</h1>
+    {% if knowns is defined and knowns|length %}
+        <table class="table table-striped">
+            <thead class="table-dark">
+            <tr>
+                <th scope="col">uid</th>
+                <th scope="col">nom</th>
+                <th scope="col">Description</th>
+                <th scope="col">Unité</th>
+                <th scope="col">Création</th>
+                <th scope="col">Validation</th>
+                <th scope="col">Actif</th>
+                <th scope="col">Etat courant</th>
+                <th scope="col">Etat demandé</th>
+                <th scope="col">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for d in knowns %}
+                <tr>
+                    <td style="border: 1px solid black;">{{ d.uid }}</td>
+                    <td style="border: 1px solid black;">{{ d.name }}</td>
+                    <td style="border: 1px solid black;">{{ d.description }}</td>
+                    <td style="border: 1px solid black;">{{ d.unit }}</td>
+                    <td style="border: 1px solid black;">{{ d.created_at|format }}</td>
+                    <td style="border: 1px solid black;"> {{ d.validated_at|format or "" }}</td>
+                    <td style="border: 1px solid black;">
+                        {% if d.active %}
+                            Oui <a href="{{ dynamic_url_for('%.state', uid=d.uid, state=0) }}">Désactiver</a>
+                        {% else %}
+                            Non
+                            {% if d.validated_by %}
+                                <a href="{{ dynamic_url_for('%.state', uid=d.uid, state=1) }}">Activer</a>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                    <td style="border: 1px solid black;">
+                        {{ d.last_data_value or "" }} @  {{ d.last_data_at|elapsed or "" }}
+                    </td>
+                    <td style="border: 1px solid black;">
+                        {{ d.last_action_value or "" }} @ {{ d.last_action_at|elapsed or "" }}
+                    </td>
+
+                    <td>
+                        {% if not d.virtual %}
+                        <a href="{{ dynamic_url_for('%.invalidate', uid=d.uid) }}" class="confirm">Invalider</a>
+                        {% endif %}
+                    </td>
+
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        Vide
+    {% endif %}
+{% endblock %}
+

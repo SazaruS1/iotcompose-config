@@ -1,0 +1,28 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: mosquitto
+    volumes:
+      - ./data/mosquitto:/mosquitto/data
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    ports:
+      - "1883:1883"
+    restart: unless-stopped
+
+  gysmo:
+    build: ./app
+    container_name: gysmo
+    working_dir: /app
+    volumes:
+      - ./data/python:/app/data
+      - ./.env:/app/.env:ro
+      - ./plugins.yaml:/app/plugins.yaml:ro
+    depends_on:
+      - mosquitto
+    environment:
+        - FLASK_ENV=production # development
+        - PYTHONUNBUFFERED=1
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    #command: python debug.py

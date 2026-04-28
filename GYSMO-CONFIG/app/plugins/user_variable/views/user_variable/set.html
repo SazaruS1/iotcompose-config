@@ -1,0 +1,15 @@
+{% from 'bootstrap5/form.html' import render_form %}
+
+{% extends "layout.html" %}
+{% block title %}Modification de la valeur de la variable {{ name }} {% endblock %}
+
+{% block content %}
+ <form method="POST">
+    {{ form.hidden_tag() }}
+
+     <div>
+         {{ name}}&nbsp;=&nbsp;{{ form.value() }} {{ unit }}   {{ form.submit() }}
+    </div>
+
+
+{% endblock %}

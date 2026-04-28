@@ -1,0 +1,70 @@
+{% from 'bootstrap5/form.html' import render_form %}
+{% extends "layout.html" %}
+{% block title %}Configuration des miroirs et du récepteur{% endblock %}
+
+{% block content %}
+    <h1>Configuration des miroirs et du récepteur</h1>
+
+    <form method="POST" onsubmit="submit()">
+         {{ form.hidden_tag() }}
+        <div style="display: flex; gap: 20px;">
+            <div>
+                <h3>Éléments disponibles</h3>
+                <select id="available" multiple size="10" style="width: 200px;">
+                    {% for element in list %}
+                        <option value="{{ element.0 }}">{{ element.1 }}</option>
+                    {% endfor %}
+                </select>#}
+            </div>
+
+            <div style="display: flex; flex-direction: column; justify-content: center; gap: 10px;">
+                <button type="button" onclick="add()">AJOUTER →</button>
+                <button type="button" onclick="remove()">← SUPPRIMER</button>
+            </div>
+
+            <div>
+                <h3>Éléments Sélectionnés</h3>
+
+                <select name="selected" id="selected" multiple size="10" style="width: 200px;">
+                    {# AJOUT ICI #}
+                </select>
+            </div>
+
+        </div>
+         {{ form.submit }}
+    </form>
+
+    <a href="{{ dynamic_url_for('%.index') }}">Revenir</a>
+
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        function add() {
+            const availableList = document.getElementById("available");
+            const selectedList = document.getElementById("selected");
+
+            const selectedOptions = Array.from(availableList.selectedOptions);
+            selectedOptions.forEach(option => {
+                selectedList.appendChild(option);
+            });
+        }
+
+        function remove() {
+            const selectedList = document.getElementById("selected");
+
+            const selectedOptions = Array.from(selectedList.selectedOptions);
+            selectedOptions.forEach(option => {
+                document.getElementById("available").appendChild(option);
+            });
+        }
+
+        function submit() {
+            const selectedList = document.getElementById("selected");
+            for (let option of selectedList.options) {
+                option.selected = true;
+            }
+        }
+    </script>
+{% endblock %}

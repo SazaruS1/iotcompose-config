@@ -1,0 +1,65 @@
+
+
+%
+%% ===========================================================
+%\usepackage[tikz]{bclogo}
+%
+%\renewcommand\logowidth{20pt}
+%
+%%\newcommand\logoPython{\includegraphics[width=17pt]{include/logoPython.pdf}}
+%\newenvironment{python}{%
+%	%	\tikzset{external/export=false}%
+%	\begin{center}%
+%		\begin{minipage}{1\textwidth}%
+%			\begin{bclogo}[logo=\bccrayon, arrondi=0.1, couleur=gray!20, barre = snake, epBarre = 1.0, ombre=true, epOmbre = 0.2, couleurOmbre = black, tailleOndu=1.5]{Et en Python?}%
+%				%
+%			}{\end{bclogo}%
+%		\end{minipage}%
+%	\end{center}%
+%	%	\tikzset{external/export=true}%
+%}%
+%\newcommand{\outsidefootnote}[1]{\tcblower \footnotemark #1}
+%% ===========================================================
+
+
+\lstset{
+	language=Python,
+	frame=leftline,
+	framerule=0.2mm,
+	basicstyle=\footnotesize\ttfamily,
+	breaklines=true,
+	postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}},
+	%
+	backgroundcolor = \color{lightgray!10},
+	keywordstyle=\bfseries,
+	commentstyle=\color{teal}\itshape,
+	%
+	numbers=left,
+	numberstyle=\tiny,
+	numbersep=5pt,
+	xleftmargin = 1em,
+	% framexleftmargin = 1em,
+	%
+	literate=% pour avoir les accents
+	{é}{{\'e}}{1}%
+	{è}{{\`e}}{1}%
+	{à}{{\`a}}{1}%
+	{ç}{{\c{c}}}{1}%
+	{œ}{{\oe}}{1}%
+	{ù}{{\`u}}{1}%
+	{É}{{\'E}}{1}%
+	{È}{{\`E}}{1}%
+	{À}{{\`A}}{1}%
+	{Ç}{{\c{C}}}{1}%
+	{Œ}{{\OE}}{1}%
+	{Ê}{{\^E}}{1}%
+	{ê}{{\^e}}{1}%
+	{î}{{\^i}}{1}%
+	{ô}{{\^o}}{1}%
+	{û}{{\^u}}{1}%
+	{ë}{{\¨{e}}}1
+	{û}{{\^{u}}}1
+	{â}{{\^{a}}}1
+	{Â}{{\^{A}}}1
+	{Î}{{\^{I}}}1
+}

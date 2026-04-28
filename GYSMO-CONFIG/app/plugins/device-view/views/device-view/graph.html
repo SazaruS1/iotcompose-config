@@ -1,0 +1,151 @@
+{% extends "layout.html" %}
+
+{% block head %}
+    {{ super() }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/fr.js"></script>
+
+{% endblock %}
+
+{% block title %}{{ name }}{% endblock %}
+
+{% block content %}
+    <h1>Evolution temporelle du capteur {{ name }}</h1>
+
+    <div class="d-flex align-items-center">
+        <div class="me-3">
+            <label for="start-date" class="form-label">Début:</label>
+        </div>
+        <div class="me-3">
+            <input type="datetime-local" id="start-date" name="start-date"
+                   value="{{ start_date.strftime('%Y-%m-%dT%H:%M') if start_date else '' }}"
+                   class="datetime-picker form-control">
+        </div>
+
+        <div class="me-3">
+            <label for="stop-date" class="form-label">Fin:</label>
+        </div>
+        <div class="me-3">
+
+            <input type="datetime-local" id="stop-date" name="stop-date"
+
+                   value="{{ stop_date.strftime('%Y-%m-%dT%H:%M') if stop_date else '' }}"
+                   class="datetime-picker   form-control">
+        </div>
+
+        <button onclick="reload()" class="btn btn-primary"> <i class="bi bi-arrow-clockwise"></i></button>
+    </div>
+    <canvas id="myChart" width="400" height="200"></canvas>
+
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+
+    <script>
+        // Récupération des données passées depuis Flask
+        const data = {{ data | tojson }};
+
+        console.log(data)
+        // Configuration de Chart.js
+        const ctx = document.getElementById('myChart').getContext('2d');
+        const myChart = new Chart(ctx, {
+            type: 'line',  // Type de graphique
+            data: {
+                labels: data.x,  // Étiquettes pour l'axe des X
+                datasets: [{
+                    label: '{{name}} (Etat Courant)',
+                    data: data.yd,  // Données pour l'axe des Y
+                    borderColor: 'rgb(183,6,6)',
+                    backgroundColor: 'rgba(183,6,6,0.2)',
+                    fill: false
+                },
+                {
+                    label: '{{name}} (Etat demandé)',
+                    data: data.ya,  // Données pour l'axe des Y
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    fill: false
+                }
+                ]
+            },
+            options: {
+                scales: {
+                    x: {
+                        type: 'time',  // Utilisation d'une échelle de temps
+                        time: {
+                            displayFormats: {
+                                // Spécifiez le format d'affichage pour la date et l'heure
+                                minute: 'yyyy-MM-dd HH:mm',  // Afficher année-mois-jour heure:minute
+                                hour: 'yyyy-MM-dd HH:mm'  // Optionnel : afficher année-mois-jour heure
+                            },
+                            tooltipFormat: 'PPpp',  // Format d'affichage dans l'info-bulle
+                        },
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: '{{name}}'
+                        }
+                    }
+                },
+                plugins: {
+                    zoom: {
+                        zoom: {
+                            wheel: {
+                                enabled: true,  // Activer le zoom par la molette de la souris
+                                speed: 0.01  // Sensibilité du zoom
+                            },
+                            pinch: {
+                                enabled: true  // Activer le zoom par pincement sur les appareils tactiles
+                            },
+                            mode: 'xy',  // Zoom sur les deux axes
+                            scaleMode: 'xy',
+                        },
+                        pan: {
+                            enabled: true,
+                            mode: 'xy',
+                            //modifierKey: 'shift',
+                            scaleMode: 'xy',
+                            threshold: 10
+                        },
+
+                    }
+                }
+            }
+        });
+
+
+        flatpickr(".datetime-picker", {
+            enableTime: true,
+            altInput: true,
+            dateFormat: "Y-m-dTH:i",
+            altFormat: "d/m/Y  H:i",
+            time_24hr: true,
+            "locale": "fr"
+        });
+
+            function reload() {
+                // Récupérer les valeurs des zones de sélection de date et heure
+                const startDate = document.getElementById('start-date').value;
+                const stopDate = document.getElementById('stop-date').value;
+
+                // Rediriger vers la même page avec les paramètres start et end dans l'URL
+                const url = new URL(window.location.href);
+                url.searchParams.set('start', startDate);
+                url.searchParams.set('stop', stopDate);
+                window.location.href = url.toString();
+            }
+    </script>
+
+{% endblock %}

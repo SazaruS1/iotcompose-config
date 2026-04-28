@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+
+{% block title %}GIMYC Control Center{% endblock %}
+
+{% block content %}
+
+
+    <input type="hidden" id="csrf_token" value="{{ csrf_token() }}">
+
+    <h1>État des Miroirs et du récepteur</h1>
+
+    {# État des miroirs #}
+    {% if  data|length %}
+        <input id="global_angle_value" type="number" value="0"><button class="btn btn-primary btn-sm" onclick="setAngleForAll()">Fixer</button>
+        <button class="btn btn-danger btn-sm" onclick="setHorizonForAll()">Fixer l'horizon</button>
+        <button class="btn btn-primary btn-sm" onclick="setToTarget()">Pointer</button>
+
+        {% for key, value in data.items() %}
+            <div data-motor="{{ key }}">
+                <span>{{ value.name }}</span>
+                <span>{{ value.angle }}</span>
+                <input id="{{ key }}" type="number" value="{{ value.angle }}">
+                    <button class="btn btn-primary btn-sm" onclick="setAngle('{{ key }}')">MOVE</button>
+                    <button class="btn btn-primary btn-sm" onclick="setTarget('{{ key }}')">SET AS NORMAL TARGET</button>
+                    <button class="btn btn-primary btn-sm" onclick="setHorizontal('{{ key }}')">SET HORIZON</button>
+                    {% if  value.active %}
+                        <button class="btn btn-success btn-sm" onclick="setState('{{ key }}', 0)">Actif</button>
+                    {% else %}
+                            <button class="btn btn-warning btn-sm" onclick="setState('{{ key }}', 1)">ARRET!</button>
+                    {% endif %}
+            </div>
+        {% endfor %}
+
+    {% else %}
+        Aucun actionneur défini -> <a href="{{ dynamic_url_for('%.configure') }}">Activer</a>
+    {% endif %}
+
+    <div><a href="{{ dynamic_url_for("%.configure") }}">Configue</a></div>
+    <div><a  href="{{ dynamic_url_for("%.autoset") }}">Autoréglage</a></div>
+    <div><a href="{{ dynamic_url_for("%.index") }}">refresh</a></div>
+
+
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
+    {#    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>#}
+    {#     #}
+    <script>
+        {# const geom = {{ geom|tojson|safe }}; #}
+        const SET_ANGLE_URL = '{{ dynamic_url_for("%.set_angle") }}'
+        const SET_TARGET_URL = '{{ dynamic_url_for("%.set_target") }}'
+        const SET_VERTICAL_URL = '{{ dynamic_url_for("%.set_vertical") }}'
+        const SET_STATE_URL = '{{ dynamic_url_for("%.set_state") }}'
+
+        const DATA = {{ data|tojson }}
+    </script>
+
+    <script src="{{ url_for('.static', filename='js/main.js') }}"></script>
+{% endblock %}

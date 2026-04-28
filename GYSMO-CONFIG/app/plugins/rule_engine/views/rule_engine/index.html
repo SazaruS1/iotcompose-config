@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block title %}Moteur de règles{% endblock %}
+
+{% block content %}
+<h1>Etat du moteur de règle [{{ __pid__ }}]</h1>
+
+{% for r in rules %}
+    <h5>#{{loop.index}} - {{ r.name }}</h5>
+    <i>{{ r.description }}</i><br>
+    <i>Priotité  {{ r.priority }}</i> - Période réfractaire {{ r.disable_delay }} [s]<br>
+    <ul>
+    {%  for p in r.premises %}
+        <li><b>SI</b> {{ p.operand1 }} {{ p.operator }} {{ p.operand2 }}</li>
+    {%  endfor %}
+    {%  for a in r.actions %}
+        <li><b>ALORS</b> {{ a.variable }}  = {{ a.value }}</li>
+    {%  endfor %}
+    </ul>
+{% endfor%}
+
+<a href="{{ url_for(__pid__+'.load') }}">Charger une base de règles</a>
+
+{% endblock %}

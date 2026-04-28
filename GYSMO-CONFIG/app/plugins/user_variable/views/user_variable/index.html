@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+{% block title %}Variables définies par l'utilisateur{% endblock %}
+{% block head %}
+    {{ super() }}
+{% endblock %}
+{% block content %}
+    <h1>Variables définies par l'utilisateur</h1>
+
+    <div><a href="{{ dynamic_url_for("%.create") }}">Créer</a></div>
+
+    {% if vars is defined and vars|length %}
+        <table class="table table-striped">
+            <thead class="table-dark">
+            <tr>
+                <th scope="col">uid</th>
+                <th scope="col">name</th>
+                <th scope="col">valeur</th>
+                <th scope="col">unité</th>
+                <th scope="col">min</th>
+                <th scope="col">max</th>
+                <th scope="col">description</th>
+                <th scope="col">action</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for v in vars %}
+                <tr>
+                    <td style="border: 1px solid black;">{{ v.uid }}</td>
+                    <td style="border: 1px solid black;">{{ v.name }}</td>
+                    <td style="border: 1px solid black;">{{ v.last_action_value }} @ {{ v.last_action_at }}                </td>
+                    <td style="border: 1px solid black;">{{ v.unit }}</td>
+                    <td style="border: 1px solid black;">{{ v.min_value }}</td>
+                    <td style="border: 1px solid black;">{{ v.max_value }}</td>
+                    <td style="border: 1px solid black;">{{ v.description }}</td>
+
+                    <td style="border: 1px solid black;">
+                        <a href="{{ dynamic_url_for("%.set", uid=v.uid) }}">SET</a>
+                        <a href="{{ dynamic_url_for("%.edit", uid=v.uid) }}">EDIT</a>
+                        <a href="{{ dynamic_url_for("%.delete", uid=v.uid) }}" class="confirm">DELETE</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        Vide
+    {% endif %}
+
+    <a href="/">Retour à la page d'accueil</a>
+{% endblock %}
+

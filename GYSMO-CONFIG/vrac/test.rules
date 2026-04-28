@@ -1,0 +1,25 @@
+! ****************************************************
+! Fichier de test pour le parseur de règles...
+! ****************************************************
+
+RULE Exemple
+"Ceci est une règle exemple.
+"Ce commentaire peut être sur plusieurs lignes qui seront concaténées avec des... sauts de lignes
+IF VARIABLE1 > VARIABLE2 [10s]   ! Tout ce qui se trouve après un point d'exclamation est ignoré
+IF VARIABLE1 <= 12 [10m]   ! le temps de maintien (facultatif) peut être exprimé en S/M et H
+IF 10 > 0           ! le maintien est d'ailleur facultatif.  Il faut alors 0
+THEN VARIABLE1 = 12 ! Il s'agit d'une affectation
+THEN @INFO = "La valeur est fausse"
+THEN @WARN = "La valeur est fausse"
+THEN @ERROR.ACK = "La valeur est fausse" ! Ces différentes syntaxes sont gérées directment par le moteur de règles
+THEN @EMAIL="Ceci est un email général"
+PRIORITY 0 ! On peut fixer une priorité
+SLEEP 12H ! On peut fixer une période de dormance
+
+RULE MailCyclique
+"Ne fait qu'envoyer un mail à chaque fois (tempo de 60 secondes)"
+IF 0 == 0
+THEN @EMAIL=Ceci est un email général avec T=[T_BASSIN]
+PRIORITY 0 ! On peut fixer une priorité
+SLEEP 60S ! On peut fixer une période de dormance
+

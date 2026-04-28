@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% block title %}Messages{% endblock %}
+
+{% block content %}
+    <h1>Messages</h1>
+
+    {% if loglist is defined and loglist|length %}
+        <table class="table table-striped">
+            <thead class="table-dark">
+            <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Niveau</th>
+                <th scope="col">Message</th>
+                <th scope="col">V</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for log in loglist %}
+                <tr>
+                <td style="border: 1px solid black;">{{ log.created_at }}</td>
+                <td style="border: 1px solid black;">{{ log.level }}</td>
+                <td style="border: 1px solid black;">{{ log.message }}</td>
+                <td style="border: 1px solid black;">{% if log.must_validate  %}Oui{% else %}Non{% endif %}</td>
+                </tr>
+
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+                Vide
+    {% endif %}
+{% endblock %}
+

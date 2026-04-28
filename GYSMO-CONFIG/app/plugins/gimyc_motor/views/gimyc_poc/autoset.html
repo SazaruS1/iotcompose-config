@@ -1,0 +1,21 @@
+{% from 'bootstrap5/form.html' import render_form %}
+{% extends "layout.html" %}
+{% block title %}Configuration automatique{% endblock %}
+
+{% block content %}
+    <h1>Configuration automatique</h1>
+    <p>en m. offset = position centre récepteur par rapport au miroir 0 (+ dans sens croissant des actionneurs)
+    </p>
+    <p>Prototype : 0.75 / 0.21 / 0.15</p>
+
+    <form method="POST">
+         {{ render_form(form) }}
+    </form>
+
+    <a href="{{ dynamic_url_for('%.index') }}">Revenir</a>
+
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+{% endblock %}

@@ -1,0 +1,144 @@
+{% extends "layout.html" %}
+{% block title %}Export des données{% endblock %}
+
+
+
+{% block content %}
+
+    <h1>Export des données</h1>
+
+    <div class="d-flex align-items-center">
+        <div class="me-3">
+            <label for="start-date" class="form-label">Début:</label>
+        </div>
+        <div class="me-3">
+            <input type="datetime-local" id="start-date" name="start-date"
+                   value="{{ start_date.strftime('%Y-%m-%dT%H:%M') if start_date else '' }}"
+                   class="datetime-picker form-control">
+        </div>
+
+        <div class="me-3">
+            <label for="stop-date" class="form-label">Fin:</label>
+        </div>
+        <div class="me-3">
+
+            <input type="datetime-local" id="stop-date" name="stop-date"
+
+                   value="{{ stop_date.strftime('%Y-%m-%dT%H:%M') if stop_date else '' }}"
+                   class="datetime-picker   form-control">
+        </div>
+
+{#        <div class="me-3">#}
+{#            <label for="timestep" class="form-label">Pas de temps (s):</label>#}
+{#        </div>#}
+{#        <div class="me-3">#}
+{#            <input type="number" id="timestep" name="timestep"#}
+{#                   value="60"#}
+{#                   class="form-control">#}
+{#        </div>#}
+    </div>
+    <div class="d-flex align-items-center mt-3 mb-3">
+        <button class="btn btn-primary btn-sm m-1" onclick="selectAll()">Tous</button>
+        <button class="btn btn-primary btn-sm m-1" onclick="deselectAll()">Aucun</button>
+        <button class="btn btn-primary btn-sm m-1" onclick="inverse()">Inverse</button>
+
+        <button onclick="download()" class="btn btn-success  "><i class="bi bi-download"></i></button>
+    </div>
+
+
+    <table class="table table-striped">
+        <tbody>
+        {% for d in devices %}
+            <tr>
+                <td>
+                    <input type="checkbox" name="{{ d.uid }}" id="{{ d.uid }}">
+                    <label class="user-select-none ms-3" for="{{ d.uid }}">{{ d.name }}</label>
+                </td>
+            </tr>
+            {#            {% if not d.read_only %} {# Lecture ET écriture (actionneur), on peut également exporter les commandes #}
+            {#                <tr></tr>#}
+            {#                <td>#}
+            {#                    <input type="checkbox" name="{{ d.uid }}" id="{{ d.uid }}">#}
+            {#                    <label class="user-select-none ms-5" for="{{ d.uid }}">{{ d.name }} (action)</label>#}
+            {#                </td>#}
+            {#                </tr>#}
+            {#            {% endif %}#}
+
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        function selectAll() {
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+        }
+
+        function deselectAll() {
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        }
+
+        function inverse() {
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = !cb.checked);
+        }
+
+        function download() {
+
+            const csrfToken = "{{ csrf_token() }}";
+
+            // Récupérer les valeurs des zones de sélection de date et heure
+            const startDate = document.getElementById('start-date').value;
+            const stopDate = document.getElementById('stop-date').value;
+            //const timestep = document.getElementById('timestep').value;
+
+            const selection = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'))
+                .map(cb => cb.name);
+
+            const payload = {
+                start: startDate,
+                stop: stopDate,
+                //dt: timestep,  // secondes
+                uids: selection
+            };
+
+            console.log(payload)
+
+            fetch("/download", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrfToken  // obligatoire pour Flask-WTF
+                },
+                body: JSON.stringify(payload)
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Erreur serveur");
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    // Création d’un lien pour forcer le téléchargement
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = "export.zip";
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                })
+                .catch(error => {
+                    console.error("Erreur:", error);
+                });
+        }
+
+        {#            START = datetime(2023, 1, 1, 0, 0, 0)#}
+        {#STOP = datetime(2023, 1, 1, 1, 0, 0)#}
+        {#DT = timedelta(seconds=60)#}
+        {#UIDS = ['sensor1', 'sensor2', 'sensor3']#}
+
+
+    </script>
+{% endblock %}
