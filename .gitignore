@@ -1,39 +1,42 @@
 # Fichiers de configuration sensibles
 etc-pihole/cli_pw
 etc-pihole/dhcp.leases
+etc-pihole/*.pem
+etc-pihole/tls.*
 etc-dnsmasq.d/05-pihole-dhcp.conf
 etc-dnsmasq.d/06-pihole-static-hosts.conf
 
-# Fichiers de données locales
+# Fichiers de données locales et backups
+etc-pihole/config_backups/
+etc-pihole/gravity_backups/
+etc-pihole/migration_backup/
+etc-pihole/listsCache/
+homeassistant/
 ENV/
-*.log
-.env.local
 
-# Fichiers temporaires
+# Fichiers temporaires et cache Python
+*.pyc
+*.pyo
+__pycache__/
+*.egg-info/
+.Python
+*.log
 *.tmp
 *.bak
 *~
-
-# Dossiers de cache
-__pycache__/
-.cache/
-node_modules/
-
-# Fichiers de sauvegarde PiHole
-etc-pihole/config_backups/
-etc-pihole/gravity_backups/
-
-# Fichiers de données persistantes
-homeassistant/config/*
-!homeassistant/config/.gitkeep
-
-# Clés SSH et fichiers d'authentification
-*.key
-*.pem
-.ssh/
 
 # Fichiers système
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
+*.swp
+
+# Clés SSH et certificats
+*.key
+*.pem
+.ssh/
+
+# Fichiers d'environnement
+.env.local
+.env.*.local
