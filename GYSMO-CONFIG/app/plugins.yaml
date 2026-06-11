@@ -1,0 +1,69 @@
+# Configuration de la plateforme
+
+devices:
+    class: "plugins.device-view"
+    prefix: /
+    menu: Liste
+
+about:
+    class: "plugins.about"
+    prefix: /about
+    menu: About
+
+device:
+    class: "plugins.device"
+    prefix: /devices
+    menu: Gestion des appareils
+
+message:
+    class: "plugins.message"
+    prefix: /message
+    menu: Messages
+
+variables:
+    class: "plugins.user_variable"
+    prefix: /var
+    menu: Variables utilisateur
+
+system:
+    class: "plugins.system"
+    prefix: /system
+    menu: Gestion du Système
+
+rule-engine-1:
+    class: "plugins.rule_engine"
+    prefix: /rule1
+    menu: Moteur de règle 1
+    params:
+        period: 50
+        toto: lolo
+
+
+solpos:
+    class: "plugins.solar_position"
+    prefix: /solar
+    menu: Soleil
+    params:
+        azimut-uid: sol_az
+        azimut-name: sun_az
+        elevation-uid: sol_el
+        elevation-name: sun_el
+
+#sinus:
+#    class: "plugins.virtual-sinus"
+#    prefix: /sinus
+#    menu: Capteur Virtuel Sinus
+#    params:
+#        A: 20
+#        T: 60
+
+GIMYC-motor:
+    class: "plugins.gimyc_motor"
+    prefix: /gimyc
+    menu: GIMYC
+    params:
+        axis: 0
+        prefix-regex: MOTOR-.*
+        azimut-name: sun_az
+        elevation-name: sun_el
+        emergency : "EMERGENCY_STOP"
