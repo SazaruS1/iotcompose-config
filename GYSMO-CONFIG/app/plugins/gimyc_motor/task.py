@@ -1,31 +1,38 @@
 import json
 import logging
-import os
+#import os
+import random
 
 import numpy as np
 
-from core import datastore, mqtt
-from core.models import Parameter, Device
+from .mode import Mode
+from core import datastore
+#from core.models import Parameter, Device
 from core.task import Task
-from core.utils import safe_int
+from core.utils import safe_float, safe_int
 
 logger = logging.getLogger(__name__)
 
 
 class GymicPocMotorControlTask(Task):
 
-    def __init__(self, id, plugid: "Str"):
+    def __init__(self, id, plugid: str):
         super().__init__(id, plugid=plugid)
 
         # TODO: Déclarer les attroibuts
 
+
         self._config = None
 
-        self._name_regex = None
+        self._filter_regex = None
+
+        self._axis = 0 # L'axe des miroirs par rapport à l'axe NS. (+ vers l'ouest). Angle du miroir compté dans le sens horaire (comme az)
 
         # Les deux clés nécessaires pour récupérer la position du Soleil
         self._az_name = ""
         self._el_name = ""
+
+        self._emergency_name = None
 
         ## ON charge le JSON et on complete
         # self._geom = GymicPocMotorControlTask.load_from_json()#
@@ -41,10 +48,6 @@ class GymicPocMotorControlTask(Task):
     def get_config(self):
         return self._config
 
-    @property
-    def regex(self):
-        return self._name_regex
-
     def sync(self, params):
 
         # On récupère la regex de selection des DEVICE (nom)
@@ -54,7 +57,12 @@ class GymicPocMotorControlTask(Task):
         #     Parameter.create(plugid=self.plugid, name="regex", value=regex)
         # else:
         #     regex = str(obj.value)
-        self._name_regex = params.get("regex",".*")
+        self._filter_regex = params.get("prefix-regex",".*")
+
+        self._emergency_name = params.get("emergency","")
+
+        if len(self._emergency_name) >  0:
+            self.add_regex(self._emergency_name) # Déclenchement sur regex
 
         # On récupère la période
         # obj = Parameter.get_or_none(plugid=self.plugid, name="period")
@@ -88,52 +96,91 @@ class GymicPocMotorControlTask(Task):
          #   self._el_name = obj.value
         self._el_name = params.get("elevation-name", "")
 
+        self._axis = safe_int(params.get("axis"),0)
+
+
         logger.info(f"Configuration moteur(s) actuelle : \n{self._config}")
 
     def start(self):
         pass
-        # TODO: Limite ici... On doit enrgistrer les DEVICES (qui correspondents à des topics MQTT)
-        # TODO: MAIS si on a un configure subséquent ALORS je ne peux plus les recréer...
-        # TODO: je pense qu'il faut réfléchir à un système où on doit "redémarrer" une tache pour prendre en compte les paramètres
-        # TODO: Cela reviendra à passer systématiquement par PARAMETER
-        # TODO: Ici je contourne en passant par un fichier JSON externe de configuration
 
-        pass
-        # Création des DEVICEs actionneurs
-        # for i in range(len(self._geom["mirrors"]["pos"])):
-        #    GymicPocMotorControlTask.create_device(i,self._geom["mirrors"]["pos"][i])
-
+    @property
+    def filter_regex(self): return self._filter_regex
+        
     def execute(self, time, did, force):
 
         # On exécute la tâche
         logger.info(f"Itération of GymicPocMotorControlTask {self.plugid} @ {time}")
 
+        emergency_stop = False
+        if self._emergency_name is not None:
+            tmp = az = datastore.pull(self._emergency_name).get(self._emergency_name)
+            emergency_stop = tmp == 1
+
+
         # On récupère la position en cours
         az = datastore.pull(self._az_name).get(self._az_name)
         el = datastore.pull(self._el_name).get(self._el_name)
 
-        if az is None or el is None:
-            logger.warning(f"Missing sun position @ {time}")
-            # ON publie un ZERO pour tous les moteurs
-            for uid in self._config.keys():
-                # On ne publie pas directement le MQTT sur les action
-                # TODO: peut-être écouter +/action pour traiter de la même façon que data?
-                #mqtt.publish(f"{uid}/action", 0)
-                datastore.push({self._config[uid]["name"]: 0})
-            return
+        # On s'occupe de chaque moteur
+        for uid, dico in self._config.items():
+            # on déduit l'angle en fonction du mode 
+            mode = dico.get("mode",Mode.RANDOM)
+            target = dico.get("target",0)
+
+            if az is None or el is None: # On force le mode random
+                logger.warning(f"Missing sun position @ {time} -> Random")
+                mode = Mode.RANDOM
+            if emergency_stop: # On force le mode random
+                logger.warning(f"Emergency Stop @ {time} -> Random")
+                mode = Mode.RANDOM
+
+            angle = None
+            if mode == Mode.RANDOM:
+                angle = random.uniform(-90, 90)
+            elif mode == Mode.UP:
+                angle = 0
+            elif mode == Mode.DOWN:
+                angle = -180
+            elif mode == Mode.OFF:
+                # On reprend le précédent
+                angle = dico.get("command")
+                angle = random.uniform(-90, 90) if angle is None else angle
+            elif mode == Mode.FOLLOW:
+                target = safe_float(dico.get("target"),0) # angle de référence -> pointe vers le capteur
+                angle = self._get_reflect_angle(az,el,target)
+            elif mode == Mode.TRANSPARENT:
+                angle = self._get_transparent_angle(az,el)
+            elif mode == Mode.FIXED:
+                pass
+            else:
+                logger.warning("Impossible ici")
+
+
+        # if az is None or el is None:
+        #     logger.warning(f"Missing sun position @ {time}")
+        #     # ON publie un ZERO pour tous les moteurs
+        #     for uid in self._config.keys():
+        #         # On ne publie pas directement le MQTT sur les action
+        #         # TODO: peut-être écouter +/action pour traiter de la même façon que data?
+        #         #mqtt.publish(f"{uid}/action", 0)
+        #         datastore.push({self._config[uid]["name"]: 0})
+        #     return
+
+        
 
         # On calcule la hauteur apparente du Soleil dans le plan principal
-        axis = 0
-        theta_s = np.degrees(np.atan2(np.tan(np.radians(el)), np.cos(np.radians(az - axis))))
+       # axis = 0
+       # theta_s = np.degrees(np.atan2(np.tan(np.radians(el)), np.cos(np.radians(az - axis))))
 
         # on  calcule pour chaque miroir
-        for uid in self._config.keys():
-            if not self._config[uid].get("active"):
-                continue
-            target = self._config[uid]["target"]
-            angle = 0.5 * (target + theta_s)
+#        for uid in self._config.keys():
+            # if not self._config[uid].get("active"):
+            #     continue
+            #target = self._config[uid]["target"]
+            #angle = 0.5 * (target + theta_s)
 
-            datastore.push({self._config[uid]["name"]: angle})
+            datastore.push({dico["name"]: angle})
             #mqtt.publish(f"{uid}/action", angle)
 
         # for i in range(len(self._geom["mirrors"]["pos"])):
@@ -198,3 +245,23 @@ class GymicPocMotorControlTask(Task):
     #     Data.push({name: 0})
 
 # task = GymicPocMotorControlTask()
+
+    def _get_reflect_angle(self,az, el, target):
+        theta_s = np.degrees(
+            np.atan2(
+                np.sin(np.radians(el)),
+                np.cos(np.radians(el))
+                * np.cos(np.radians(az - self._axis))
+            )
+        )
+        return 0.5 * (target - theta_s)
+    
+    def _get_transparent_angle(self, az, el):
+        theta_s = np.degrees(
+            np.atan2(
+                np.sin(np.radians(el)),
+                np.cos(np.radians(el))
+                * np.cos(np.radians(az - self._axis))
+            )
+        )
+        return ((theta_s + 90) % 180) - 90

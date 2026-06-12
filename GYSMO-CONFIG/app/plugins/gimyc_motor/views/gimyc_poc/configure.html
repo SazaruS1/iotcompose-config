@@ -14,12 +14,12 @@
                     {% for element in list %}
                         <option value="{{ element.0 }}">{{ element.1 }}</option>
                     {% endfor %}
-                </select>#}
+                </select>
             </div>
 
             <div style="display: flex; flex-direction: column; justify-content: center; gap: 10px;">
-                <button type="button" onclick="add()">AJOUTER →</button>
-                <button type="button" onclick="remove()">← SUPPRIMER</button>
+                <button class="btn btn-primary btn-sm" type="button" onclick="add()">AJOUTER →</button>
+                <button class="btn btn-primary btn-sm" type="button" onclick="remove()">← SUPPRIMER</button>
             </div>
 
             <div>

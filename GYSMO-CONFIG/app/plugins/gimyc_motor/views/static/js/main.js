@@ -1,3 +1,61 @@
+function buildPayload() {
+
+    const mirrors = [];
+
+    document
+        .querySelectorAll('input[name="selected"]:checked')
+        .forEach(cb => mirrors.push(cb.id));
+
+    mode = Number(document.getElementById("mode").value)
+    if (mode == 3) { //fixed
+        return {
+            mirrors: mirrors,
+            mode:mode,
+            angle: Number(document.getElementById("angle").value)
+        };
+    }  else {
+        return {
+            mirrors: mirrors,
+            mode: mode,
+        };
+    }
+
+}
+
+
+
+function saveState() {
+    // Sauvegarde le mode et la valeur éventuelle pour tous les actiionneurs sélectionnées
+    val = document.getElementById("angle").value || 0
+    mode = document.getElementById("mode").value || 0
+
+    json = buildPayload()
+    const csrfToken = document.getElementById('csrf_token').value;
+
+    console.log(json)
+
+    fetch(SET_STATE, {
+        method: 'POST', // Méthode HTTP
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
+        },
+        body: JSON.stringify(json),
+    })
+//            .then(response => {
+//                   console.log('Réponse du serveur :', response);
+//            })
+//            .catch(error => {
+//                console.log("JE SUIS ICI")
+//                console.error(error);
+//            });
+    showOverlay()
+    setTimeout(
+        () => {
+            window.location.reload();
+        },
+        1000)
+}
 
 
 function setAngleForAll() {
@@ -30,39 +88,41 @@ function setHorizonForAll() {
 }
 
 
+// function setAngle(key, val=document.getElementById(key).value) {
+
+//     console.log("setAngle", key, val);
+
+//     const json = JSON.stringify({uid: key, angle: val})
+//     const csrfToken = document.getElementById('csrf_token').value;
+
+
+//     //fetch("https://echo.free.beeceptor.com", {
+//     fetch(SET_ANGLE_URL, {
+//         method: 'POST', // Méthode HTTP
+//         headers: {
+//             'Content-Type': 'application/json',
+//             'X-CSRFToken': csrfToken,
+//         },
+//         body: json,
+//     })
+// //            .then(response => {
+// //                   console.log('Réponse du serveur :', response);
+// //            })
+// //            .catch(error => {
+// //                console.log("JE SUIS ICI")
+// //                console.error(error);
+// //            });
+//     showOverlay()
+//     setTimeout(
+//         () => {
+//             window.location.reload();
+//         },
+//         1000)
+
+// }
+
+
 // val n'est calculé qui si sa valeur n'est pas fournie
-function setAngle(key, val=document.getElementById(key).value) {
-
-    console.log("setAngle", key, val);
-
-    const json = JSON.stringify({uid: key, angle: val})
-    const csrfToken = document.getElementById('csrf_token').value;
-
-
-    //fetch("https://echo.free.beeceptor.com", {
-    fetch(SET_ANGLE_URL, {
-        method: 'POST', // Méthode HTTP
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken,
-        },
-        body: json,
-    })
-//            .then(response => {
-//                   console.log('Réponse du serveur :', response);
-//            })
-//            .catch(error => {
-//                console.log("JE SUIS ICI")
-//                console.error(error);
-//            });
-    showOverlay()
-    setTimeout(
-        () => {
-            window.location.reload();
-        },
-        1000)
-
-}
 
 
 function setTarget(key) {
@@ -129,33 +189,33 @@ function setHorizontal(key) {
 
 }
 
-function setState(key, state) {
+// function setState(key, state) {
 
-    const json = JSON.stringify({uid: key, state: state})
-    const csrfToken = document.getElementById('csrf_token').value;
+//     const json = JSON.stringify({uid: key, state: state})
+//     const csrfToken = document.getElementById('csrf_token').value;
 
 
-    //fetch("https://echo.free.beeceptor.com", {
-    fetch(SET_STATE_URL, {
-        method: 'POST', // Méthode HTTP
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken,
-        },
-        body: json,
-    })
-//            .then(response => {
-//                   console.log('Réponse du serveur :', response);
-//            })
-//            .catch(error => {
-//                console.log("JE SUIS ICI")
-//                console.error(error);
-//            });
-    showOverlay()
-    setTimeout(
-        () => {
-            window.location.reload();
-        },
-        1000)
+//     //fetch("https://echo.free.beeceptor.com", {
+//     fetch(SET_STATE_URL, {
+//         method: 'POST', // Méthode HTTP
+//         headers: {
+//             'Content-Type': 'application/json',
+//             'X-CSRFToken': csrfToken,
+//         },
+//         body: json,
+//     })
+// //            .then(response => {
+// //                   console.log('Réponse du serveur :', response);
+// //            })
+// //            .catch(error => {
+// //                console.log("JE SUIS ICI")
+// //                console.error(error);
+// //            });
+//     showOverlay()
+//     setTimeout(
+//         () => {
+//             window.location.reload();
+//         },
+//         1000)
 
-}
+// }

@@ -1,15 +1,19 @@
 import logging
+import random
 import re
 
 import numpy as np
 from flask import Blueprint, request, abort, render_template, redirect, url_for, jsonify
 from flask_wtf import FlaskForm
 from peewee import DoesNotExist
-from wtforms import SelectMultipleField
+#from wtforms import SelectMultipleField
 from wtforms.fields.numeric import FloatField
 from wtforms.fields.simple import SubmitField
-from wtforms.validators import InputRequired, NumberRange, DataRequired
 
+from core.utils import safe_float
+#from wtforms.validators import InputRequired, NumberRange, DataRequired
+
+from .mode import Mode
 from core.models import Device, Parameter
 from core.web import dynamic_url_for
 
@@ -43,7 +47,8 @@ def index():
     # On complète avec la position courante (si dispo)
     for d in data.keys():
         device = Device.get(Device.uid == d)
-        data[d]["angle"] = device.last_data_value if device.last_data_value is not None else "??"
+        data[d]["angle"] = device.last_data_value if device.last_data_value is not None else ""
+        data[d]["command"] = device.last_action_value if device.last_action_value is not None else ""
 
     # trie selon name
     data = dict(sorted(data.items(), key=lambda item: item[1]['name']))
@@ -68,16 +73,18 @@ def configure():
         config = dict()  # La nouvelle configuration
 
         for d in devices_uid:
-            if d in config:
+            if d in current:
                 # Le device est déjà connu -> on récupre les données existantes...
                 config[d] = current[d]
+                config[d]["angle"]=0 # mais on met l'angle à
             else:
                 # Le device n'est pas connu -> on ajoute
-                dev = Device.get(Device.uid == d)
-                if dev is None:
+                try:
+                    dev = Device.get(Device.uid == d)
+                except DoesNotExist: 
                     logger.error(f"Device with uid={d} not found")
                     continue
-                config[d] = {"name": dev.name, "target": 0, "active":False}
+                config[d] = {"name": dev.name, "target": 0, "mode":Mode.OFF, "angle": 0}
 
         # On sauvegarde
         Parameter.set(plugid=f"{request.plugid}", name="config", value=json.dumps(config))
@@ -92,7 +99,7 @@ def configure():
 
     choices = []
     for d in devices:
-        if re.match(task.regex, d["name"]):
+        if re.match(task.filter_regex, d["name"]):
             choices.append((d["uid"], d["name"]))
 
 
@@ -121,55 +128,81 @@ def echo():
     return jsonify(data)
 
 
-@webapp.route('/set-angle', methods=['POST'])
-def set_angle():
-    task = get_task_or_500()
-    data = request.get_json()
 
-    # On récupère les informations
-    uid = data["uid"]
-    try:
-        angle = float(data["angle"])
-    except ValueError:
-        return {}, 400
 
-    # On vérifie que l'UID est bien dans les actionneurs référencés
-    config = task.get_config()
-    if uid not in config:
-        return {}, 400
+# @webapp.route('/set-angle', methods=['POST'])
+# def set_angle():
+#     task = get_task_or_500()
+#     data = request.get_json()
 
-    # On met à jour l'actionneur
-    try:
-        dev = Device.get(Device.uid == uid)
+#     # On récupère les informations
+#     uid = data["uid"]
+#     try:
+#         angle = float(data["angle"])
+#     except ValueError:
+#         return {}, 400
 
-        from core import datastore
-        datastore.push({dev.name: angle})
+#     # On vérifie que l'UID est bien dans les actionneurs référencés
+#     config = task.get_config()
+#     if uid not in config:
+#         return {}, 400
 
-    except DoesNotExist:
-        return {}, 400
+#     # On met à jour l'actionneur
+#     try:
+#         dev = Device.get(Device.uid == uid)
 
-    return {}, 200 # Fin normale
+#         from core import datastore
+#         datastore.push({dev.name: angle})
+#         config[uid]["mode"] = Mode.FIXED
+
+#         # Synchro
+#         Parameter.set(plugid=f"{request.plugid}", name="config", value=json.dumps(config))
+#         task.sync(Parameter.getDict(request.plugid))
+
+#     except DoesNotExist:
+#         return {}, 400
+
+#     return {}, 200 # Fin normale
 
 @webapp.route('/set-state', methods=['POST'])
 def set_state():
     task = get_task_or_500()
     data = request.get_json()
 
-    # On récupère les informations
-    uid = data["uid"]
-    state = data["state"]
+    
+    mode = data["mode"]
+   
 
-    # On vérifie que l'UID est bien dans les actionneurs référencés
+
     config = task.get_config()
-    if uid not in config:
-        return {}, 400
 
-        # On met à jour la référence dans la CONFIG
-    config[uid]["active"] = state
+
+    for uid in data["mirrors"]:
+        if uid in config:
+            dev = Device.get(Device.uid == uid)
+            from core import datastore
+            angle = _get_angle(safe_float(data.get("angle"),0), mode)
+            if angle is not None:
+                datastore.push({dev.name: angle})
+            
+            config[uid]["mode"] = mode
+    
     Parameter.set(plugid=f"{request.plugid}", name="config", value=json.dumps(config))
     task.sync(Parameter.getDict(request.plugid))
 
     return {}, 200 # Fin normale
+
+
+    # # On vérifie que l'UID est bien dans les actionneurs référencés
+    # config = task.get_config()
+    # if uid not in config:
+    #     return {}, 400
+
+    # # On met à jour la référence dans la CONFIG
+    # config[uid]["mode"] = mode
+    # Parameter.set(plugid=f"{request.plugid}", name="config", value=json.dumps(config))
+    # task.sync(Parameter.getDict(request.plugid))
+
 
 
 
@@ -294,3 +327,24 @@ def autoset():
     #         choices.append((d["uid"], d["name"]))
 
     return render_template('gimyc_poc/autoset.html', form=form)
+
+
+def _get_angle(angle, mode):
+
+    if mode == Mode.FIXED:
+        return angle
+    elif mode == Mode.RANDOM:
+        if abs(angle)>10:
+            return random.uniform(-90, 90)
+        return angle + random.uniform(-5, 5)
+    elif mode == Mode.FOLLOW:
+        return angle
+    elif mode == Mode.UP:
+        return 0
+    elif mode == Mode.DOWN:
+        return  -180
+    elif mode == Mode.TRANSPARENT:
+        return angle
+    elif mode == Mode.OFF:
+        return angle
+
