@@ -25,10 +25,10 @@ def _substitute(string, old, new):
     return string
 
 
-def _execute(messages,data_old,data_new):
+def _execute(messages : list[tuple[str,str]],data_old,data_new):
 
 
-    for (k, v) in messages.items():
+    for k, v in messages:
         k = k.upper()
         v = _substitute(v, data_old, data_new)
         if k == "@EMAIL":
@@ -117,6 +117,8 @@ def _evaluate(ds, op1, op2, oper):
         case _:
             logger.warning(f"unknown operator {oper}")
             return False
+
+
 def _update_premises(uid,now, data):
 
     subquery = Rule.select(Rule.id).where(Rule.plugin == uid)
@@ -124,21 +126,21 @@ def _update_premises(uid,now, data):
 
     for p in query:
         condition = _evaluate(data, p.operand1, p.operand2, p.operator)
-        # Si la condition est None, c'est qu'on a eu un pb pour l'évaluer ->
-        # TODO: mettre une exception
         if condition is None:
-            logger.warning(f"Unable to evaluate condition of premise {p} for rule {p.rule} of {uid}")
-            condition = False
+            raise RuleEngineException(
+                f"Unable to evaluate condition of premise {p} for rule {p.rule} of {uid}"
+            )
         # Si la condition est Vraie, on enregistre l'instant de basculement
         if condition:
-            #p.test = True # Pas utile
-            p.test_ts = p.true_ts if p.true_ts is not None else now
+            if p.true_ts is None:
+                p.true_ts = now
             # On fixe l'état de la prémisse (avec tempo)
-            p.state = (now - p.test_ts).seconds >= p.hold_delay
+            p.state = (now - p.true_ts).seconds >= p.hold_delay
 
         else:  # On reset l'instant de basculement
             #p.test = False
             p.true_ts = None
+            p.state = False
 
         p.save()
 
@@ -146,7 +148,7 @@ def _trigger(uid, now,data):
 
     # On applique toutes les règles déclenchables par ordre de priorité croissante
     data_changes = dict()
-    messages = dict()
+    messages : list[tuple[str,str]] = [] # On transforme en liste de tuple (type, message)
 
     query = Rule.select().where((Rule.plugin == uid) & Rule.triggerable).order_by(Rule.priority.desc())
 
@@ -154,7 +156,7 @@ def _trigger(uid, now,data):
     for r in query:  # pour chaque règle déclencheable
         for a in r.actions:
             if a.variable.startswith("@"):
-                messages[a.variable] = a.value
+                messages.append((a.variable, a.value))
             else:
                 # on recherche la valeur de "Value"
                 val = _extract(a.value, data)
@@ -189,4 +191,3 @@ def process(uid, now):
 
     # On enregistre/effectue les actions
     _execute(messages, data,data_changes)
-

@@ -21,7 +21,7 @@ class Message(BaseModel):
     message = pw.TextField(null=False)
     must_validate = pw.BooleanField(default=True)
 
-    created_at = pw.DateTimeField(default=datetime.datetime.now())
+    created_at = pw.DateTimeField(default=datetime.datetime.now)
     validated_at = pw.DateTimeField(null=True)
     validated_by = pw.CharField(null=True, max_length=50)
 

@@ -1,5 +1,7 @@
 import datetime
+import logging
 import re
+
 
 
 class TaskException(Exception):
@@ -57,33 +59,37 @@ class Task:
     def sync(self, params):
         """Auto-configuration à partir des données contenues dans le dictinnaire params"""
         pass
+    
     def start(self):
         pass
 
     def stop(self):
         pass
 
-    def fire(self,did = None, force = False):
+    def fire(self, did = None, force = False) -> bool:
         now = datetime.datetime.now() #On récupère la date en local
         ok = False
         if force:
             # on déclenche inconditionnellement
             ok = True
         else:
-            # on vérifie le déclenchement via le regex si string existe
-            if did is not None:
+            if did is not None: # on vérifie le déclenchement via le regex si string existe
                 for r in self._task_regex:
-                    ok &= r.match(did)
-
+                    if r.search(did):
+                        ok = True
             # et on déclenche le cas échéant avec le période
             ok |= (self._next_trigger is None) or now >= self._next_trigger
+        
+        return ok
 
-        if ok:
-            self._last_trigger = now
-            if self._task_period>0:
-                # On planifie
-                self._next_trigger = now + datetime.timedelta(seconds=self._task_period)
-            self.execute(now,did, force= force)
+    def _execute(self,time,did,force):
+        # Exécution 
+        self.execute(time,did,force)
+        # Planification
+        self._last_trigger = time
+        if self._task_period>0:
+            # On planifie
+            self._next_trigger = time + datetime.timedelta(seconds=self._task_period)
 
     def execute(self,time,did,force):
         # time -> l'instant courant

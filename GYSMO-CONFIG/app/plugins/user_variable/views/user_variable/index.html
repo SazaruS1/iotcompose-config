@@ -27,7 +27,13 @@
                 <tr>
                     <td style="border: 1px solid black;">{{ v.uid }}</td>
                     <td style="border: 1px solid black;">{{ v.name }}</td>
-                    <td style="border: 1px solid black;">{{ v.last_action_value }} @ {{ v.last_action_at }}                </td>
+                    <td style="border: 1px solid black;">
+                        {% if v.virtual %}
+                            {{ v.last_data_value }} @ {{ v.last_data_at }}
+                        {% else %}
+                            {{ v.last_action_value }} @ {{ v.last_action_at }}
+                        {% endif %}
+                    </td>
                     <td style="border: 1px solid black;">{{ v.unit }}</td>
                     <td style="border: 1px solid black;">{{ v.min_value }}</td>
                     <td style="border: 1px solid black;">{{ v.max_value }}</td>

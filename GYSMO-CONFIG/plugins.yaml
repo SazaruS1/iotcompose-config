@@ -35,8 +35,8 @@ rule-engine-1:
     prefix: /rule1
     menu: Moteur de règle 1
     params:
-        period: 50
-        toto: lolo
+        period: 5000
+        regex: "EMERGENCY.*"
 
 
 solpos:
@@ -59,9 +59,11 @@ solpos:
 
 GIMYC-motor:
     class: "plugins.gimyc_motor"
-    prefix: /gymic
-    menu: GYMIC
+    prefix: /gimyc
+    menu: GIMYC
     params:
-        regex: MOTOR-.*
+        axis: 0
+        prefix-regex: MOTOR-.*
         azimut-name: sun_az
         elevation-name: sun_el
+        emergency : "EMERGENCY_STOP"

@@ -249,19 +249,17 @@ class GymicPocMotorControlTask(Task):
     def _get_reflect_angle(self,az, el, target):
         theta_s = np.degrees(
             np.atan2(
-                np.sin(np.radians(el)),
-                np.cos(np.radians(el))
-                * np.cos(np.radians(az - self._axis))
+                np.sin(np.radians(az - self._axis)),
+                np.tan(np.radians(el))
             )
         )
-        return 0.5 * (target - theta_s)
+        return 0.5 * (target + theta_s)
     
     def _get_transparent_angle(self, az, el):
         theta_s = np.degrees(
             np.atan2(
-                np.sin(np.radians(el)),
-                np.cos(np.radians(el))
-                * np.cos(np.radians(az - self._axis))
+                np.sin(np.radians(az - self._axis)),
+                np.tan(np.radians(el))
             )
         )
         return ((theta_s + 90) % 180) - 90

@@ -1,0 +1,14 @@
+! ****************************************************
+! Fichier de test pour le parseur de règles...
+! ****************************************************
+
+RULE EMERGENCY_START
+IF EMERGENCY_STOP == 1  ! Emergency
+THEN @WARNING = "Arret d'urgence"
+PRIORITY 0 ! On peut fixer une priorité
+
+RULE EMERGENCY_STOP
+IF EMERGENCY_STOP == 0 
+THEN @INFO = "Mode normal"
+PRIORITY 0 ! On peut fixer une priorité
+

@@ -13,6 +13,8 @@ from wtforms.widgets.core import CheckboxInput
 from core.models import Device, Record
 from core.web import dynamic_url_for
 
+from core.mqtt import publish as mqtt_publish  # en haut du fichier
+
 logger = logging.getLogger(__name__)
 
 from .helpers import create_user_var
@@ -24,7 +26,7 @@ webapp = Blueprint('-', __name__, template_folder="views")
 def index():
     rep = list(
         Device.select().where(
-            (Device.virtual == True) &
+#            (Device.virtual == True) &
             (Device.active == True) &
             (Device.read_only == False)
         )
@@ -66,8 +68,8 @@ def create():
 
             if device is not None:
                 ts = datetime.datetime.now()
-                device.last_action_value = value
-                device.last_action_at = ts
+                device.last_data_value = value
+                device.last_data_at = ts
                 device.save()
 
                 Record.create(device=device, value=value, ts=ts, action=True)
@@ -149,18 +151,40 @@ def set(uid):
             # Récupération des données du formulaire
             value = form.value.data
 
+            # Validation min/max
+            if value < dev.min_value or value > dev.max_value:
+                flash(f"Valeur hors limites [{dev.min_value}, {dev.max_value}]", "error")
+                return render_template("user_variable/set.html", form=form, name=dev.name, unit=dev.unit)
+
+            # Arrondi selon le nombre de digits
+            if dev.digits == 0:
+                rounded = int(round(value, 0))
+            else:
+                rounded = round(value, dev.digits)
+
+            
+            if rounded != value:
+                flash(f"Valeur arrondie de {value} à {rounded}", "warning")
+                value = rounded
+
+
             ts = datetime.datetime.now()
-            dev.last_data_value = value
-            dev.last_data_at = ts
-            dev.save()
-
-            Record.create(device=dev, value=value, ts=ts, action=False)
-
+            if dev.virtual:
+                dev.last_data_value = value
+                dev.last_data_at = ts
+                dev.save()
+                Record.create(device=dev, value=value, ts=ts, action=False)
+            else:
+                # Actionneur : on sauvegarde ET on publie la commande MQTT
+                dev.last_action_value = value
+                dev.last_action_at = ts
+                dev.save()
+                Record.create(device=dev, value=value, ts=ts, action=True)
+                mqtt_publish(f"{dev.uid}/action", value)   # ← commande MQTT vers l'actionneur
             logger.info(f"Set value of user variable {dev}")
 
             flash(f"Valeur de la variable {dev.name} modifiée avec succès !", "success")
             return redirect(dynamic_url_for(f'%.index'))  # rediriger pour éviter le repost
-
 
         else:
             flash("Erreur de validation du formulaire", "error")

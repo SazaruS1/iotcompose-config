@@ -23,27 +23,56 @@ _running = False  # On ne peut plus ajouter après démarrage
 _thread = None
 _lock = threading.Lock()
 
+_changed_vars = set()
+_changed_lock = threading.Lock()
+
+
+def notify_change(did: str):
+    with _changed_lock:
+        _changed_vars.add(did)
 
 # =======================================================
 # Routine (thread) principal d'exécution des tasks
 # =======================================================
 def _run_thread():
     logger.info("TaskThread started")
+    global _changed_vars
     while _running:
         now = datetime.datetime.now()
         logger.info(f"TaskThread loop @ {now}")
+        tasks_to_fire: list[tuple[Task, str | None]] = []
+
+        # Récupère et vide les changements accumulés
+        with _changed_lock:
+            dids = _changed_vars
+            _changed_vars = set()
+
+        # On identifie les Task a lancer
         with _lock:
-            for uid, task in _tasks.items():
-                if task.fire(now):
-                    try:
-                        task.execute(now)
-                    except Exception as ex:
-                        logger.warning(f"Exception during execution of system {uid}: {ex}")
+            for task in _tasks.values():
+                if dids:
+                    for did in dids:
+                        if task.fire(did):
+                            tasks_to_fire.append((task, did))
+                elif task.fire():
+                    tasks_to_fire.append((task, None))
+
+        # On les exécute
+        for task, did in tasks_to_fire:
+            try:    
+                task._execute(now,did, force=False)
+            except Exception as e:
+                logging.getLogger(__name__).warning(f"Task {task} failed: {e}")
 
         time.sleep(1)
 
     logger.info("TaskThread stopped")
 
+def trigger(did: str):
+    """Appelle fire(did=did) sur toutes les tâches enregistrées"""
+    with _lock:
+        for task in _tasks.values():
+            task.fire(did=did)
 
 def sync(tid):
     if tid not in _tasks:

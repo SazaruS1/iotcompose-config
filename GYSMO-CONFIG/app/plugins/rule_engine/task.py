@@ -14,7 +14,11 @@ class RuleEngineTask(Task):
         logger.info(f"Itération of Rule Engine {self.plugid} @ {time}")
 
         from .engine import process
-        process(self.id, time)
+
+        # Il faut supprimer le -task...
+        pid  = self.id[:-5]
+
+        process(pid, time)
 
     def sync(self,params):
 
@@ -27,3 +31,7 @@ class RuleEngineTask(Task):
 #            period = safe_int(param.value,1)#
 
         self.set_period(safe_int(params.get("period"),10))
+
+        regex = params.get("regex")
+        if regex is not None:
+            self.add_regex(regex)

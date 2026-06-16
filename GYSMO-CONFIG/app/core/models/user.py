@@ -12,8 +12,8 @@ class User(BaseModel):
     password = CharField(null=True)
     email = CharField(unique=True)
 
-    created_at = DateTimeField(default = datetime.datetime.now())
-    last_connection_at = DateTimeField(default=datetime.datetime.now())
+    created_at = DateTimeField(default = datetime.datetime.now)
+    last_connection_at = DateTimeField(default=datetime.datetime.now)
 
     def __str__(self):
         return f"User[{self.id}] {self.username} ({self.email})"

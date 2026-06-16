@@ -2,7 +2,12 @@
 {% block title %}Messages{% endblock %}
 
 {% block content %}
-    <h1>Messages</h1>
+    <h1>Messages
+        <a href="{{ dynamic_url_for('%.clear') }}" class="btn btn-warning btn-sm"
+           onclick="return confirm('Supprimer les messages acquittés ou sans validation ?')">
+            Nettoyer
+        </a>
+    </h1>
 
     {% if loglist is defined and loglist|length %}
         <table class="table table-striped">
