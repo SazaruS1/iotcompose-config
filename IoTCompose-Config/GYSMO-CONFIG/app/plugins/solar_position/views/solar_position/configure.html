@@ -1,0 +1,35 @@
+{% from 'bootstrap5/form.html' import render_form %}
+{% extends "layout.html" %}
+{% block title %}Position du Soleil{% endblock %}
+
+{% block content %}
+<h1>Configuration</h1>
+    <button type="button" class="btn btn-info" onclick="geolocaliser()">Géolocaliser</button>
+    {{ render_form(form) }}
+
+    <a href="/sun_pos">Revenir</a>
+
+
+
+{% endblock %}
+
+{% block scripts %}
+ {{ super() }}
+ <script>
+function geolocaliser() {
+    if (!navigator.geolocation) {
+        alert("La géolocalisation n'est pas supportée par votre navigateur.");
+        return;
+    }
+    navigator.geolocation.getCurrentPosition(
+        function(pos) {
+            document.getElementById('longitude').value = pos.coords.longitude.toFixed(4);
+            document.getElementById('latitude').value = pos.coords.latitude.toFixed(4);
+        },
+        function(err) {
+            alert("Impossible de vous géolocaliser : " + err.message);
+        }
+    );
+}
+</script>
+{%endblock %}

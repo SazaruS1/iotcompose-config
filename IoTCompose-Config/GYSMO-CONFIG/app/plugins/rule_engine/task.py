@@ -1,0 +1,37 @@
+import logging
+
+from core.models import Parameter
+from core.task import Task
+from core.utils import safe_int
+
+logger = logging.getLogger(__name__)
+
+
+class RuleEngineTask(Task):
+
+    def execute(self, utc, did, force):
+        # Effectue une itération du moteur de règle:
+        logger.info(f"Itération of Rule Engine {self.plugid} @ {utc}")
+
+        from .engine import process
+
+        # Il faut supprimer le -task...
+        pid  = self.id[:-5]
+
+        process(pid, utc)
+
+    def sync(self,params):
+
+        # Par convention, les paramètres sont réatachés au PLUGIN mais non à la tache
+#        param = Parameter.get_or_none(plugid=self.plugid, name="period")
+#        if param is None:
+#            Parameter.create(plugid=self.plugid, name="period", value=60)
+#            period = 60
+#        else:
+#            period = safe_int(param.value,1)#
+
+        self.set_period(safe_int(params.get("period"),10))
+
+        regex = params.get("regex")
+        if regex is not None:
+            self.add_regex(regex)
