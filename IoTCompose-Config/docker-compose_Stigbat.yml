@@ -54,6 +54,7 @@ services:
   gysmo:
     build: ./GYSMO-CONFIG/app
     container_name: gysmo
+    restart: unless-stopped
     working_dir: /app
     volumes:
       - ./GYSMO-CONFIG/app:/app
