@@ -1,0 +1,104 @@
+{% extends "layout.html" %}
+{% block title %}Configuration {{ motor.name }}{% endblock %}
+
+{% block content %}
+    <input type="hidden" id="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="text-center">
+
+        <h2>{{ motor.name }}</h2>
+
+        <div class="card mx-auto my-4" style="max-width: 400px;">
+            <div class="card-body">
+                <div style="font-size: 2rem; font-weight: bold;">
+                    {% if motor.angle != '' %}{{ "%.1f" % motor.angle }}°{% endif %} / <span class="text-muted">{% if motor.command != '' %}{{ "%.1f" % motor.command }}°{% endif %}</span>
+                </div>
+                <div>({{motor.target}}°)</div>
+            </div>
+        </div>
+
+        <div class="btn-group btn-group-lg my-3" role="group">
+            <button class="btn btn-outline-primary" onclick="move(-10)">&lt;&lt;</button>
+            <button class="btn btn-outline-primary" onclick="move(-1)">&lt;</button>
+            <button class="btn btn-outline-primary" onclick="move(1)">&gt;</button>
+            <button class="btn btn-outline-primary" onclick="move(10)">&gt;&gt;</button>
+        </div>
+
+        <div class="d-flex justify-content-center gap-2 my-3">
+            <button class="btn btn-danger" onclick="setHorizontal()">HORIZON</button>
+            <button class="btn btn-warning" onclick="setTarget()">VISEE</button>
+            <a href="{{ dynamic_url_for('%.index') }}" class="btn btn-secondary">RETOUR</a>
+        </div>
+
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+        <script>
+        const SET_STATE_URL = '{{ dynamic_url_for("%.set_state") }}';
+        const SET_TARGET_URL = '{{ dynamic_url_for("%.set_target") }}';
+        const SET_HORIZONTAL_URL = '{{ dynamic_url_for("%.set_horizontal") }}';
+    </script>
+
+
+
+    <script src="{{ url_for('.static', filename='js/main.js') }}"></script>
+    <script>
+
+        function move(step) {
+            const current = parseFloat('{{ motor.command }}') || 0;
+            payload = {
+                "mirrors": [ "{{ uid }}"],
+                "mode": 3,
+                "angle": current + step 
+            }
+            saveState(payload)
+
+        }
+
+        function setHorizontal(uid) {
+
+            const csrfToken = document.getElementById('csrf_token').value;
+
+            payload = {
+                "uid": "{{ uid }}",
+            }
+            fetch(SET_HORIZONTAL_URL, {
+                method: 'POST', // Méthode HTTP
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify(payload),
+            })
+            showOverlay()
+            setTimeout(
+                () => {
+                window.location.reload();
+            },100)
+
+}            
+
+        function setTarget() {
+            const csrfToken = document.getElementById('csrf_token').value;
+
+            payload = {
+                "uid": "{{ uid }}",
+            }
+            fetch(SET_TARGET_URL, {
+                method: 'POST', // Méthode HTTP
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify(payload),
+            })
+            showOverlay()
+            setTimeout(
+                () => {
+                window.location.reload();
+            },100)
+        }
+    </script>
+{% endblock %}

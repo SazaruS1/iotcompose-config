@@ -54,6 +54,7 @@ def push(data):
                 # C'est un actionneur, on enregistre en base et on publie
                 #_upsert_record(device=device, value=value, ts=ts, action=True)
                 #Record.create(device=device, value=value, ts=ts, action=True)
+                if value is None: return
                 try:
                     Record.create(device=device, value=value, ts=ts, action=True)
                 except Exception as e:

@@ -91,7 +91,7 @@ def process_register(topic,data):
 
     # Récupération du JSON
     try:
-        dict = json.loads(data)
+        payload = json.loads(data)
     except json.JSONDecodeError as e:
         logger.warning(f"Invalid JSON for registering {e}")
         return
@@ -100,21 +100,21 @@ def process_register(topic,data):
     ok = True
     for key in ["uid", "description", "unit", "min_value", "max_value", "delta_value", "period",
                 "min_period", "max_period", "read_only"]:
-        ok = ok and (key in dict)
+        ok = ok and (key in payload)
 
     if not ok:
         logger.warning(f"Malformed MQTT register")
         return
 
     # Pas de remplacement si le device existe déjà
-    if Device.get_or_none(uid=dict["uid"]) is not None:
-        logger.warning(f"Device {dict['uid']} already register")
+    if Device.get_or_none(uid=payload["uid"]) is not None:
+        logger.warning(f"Device {payload['uid']} already register")
         return
 
     # TODO: vérifier la structure des JSON...
     # Finalement... création
     try:
-        device = Device.create(**dict)
+        device = Device.create(**payload)
     except peewee.PeeweeException as e:
         logger.warning(f"Unable to register device : {e}")
         return

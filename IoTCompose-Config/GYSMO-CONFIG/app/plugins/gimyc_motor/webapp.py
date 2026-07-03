@@ -3,14 +3,16 @@ import random
 import re
 
 import numpy as np
+from core import datastore
+from core.utils import safe_float
 from flask import Blueprint, request, abort, render_template, redirect, url_for, jsonify
 from flask_wtf import FlaskForm
 from peewee import DoesNotExist
 #from wtforms import SelectMultipleField
 from wtforms.fields.numeric import FloatField
-from wtforms.fields.simple import SubmitField
+from wtforms.fields.simple import SubmitField, StringField
 
-from core.utils import safe_float
+
 #from wtforms.validators import InputRequired, NumberRange, DataRequired
 
 from .mode import Mode
@@ -115,17 +117,35 @@ def get_task_or_500():
     return task
 
 
-@webapp.route('/echo', methods=['POST'])
-def echo():
-    # Récupérer les données JSON envoyées dans la requête
-    data = request.get_json()
+@webapp.route('/motor-config/<uid>', methods=['GET'])
+def motor_config(uid):
+    task = get_task_or_500()
+    config = task.get_config()
 
-    # Si les données ne sont pas valides, renvoyer une erreur
-    if data is None:
-        return jsonify({'error': 'Invalid JSON'}), 400
+    if uid not in config:
+        abort(404)
 
-    # Retourner les mêmes données reçues dans la réponse
-    return jsonify(data)
+
+    device = Device.get_or_none(Device.uid == uid)
+
+    motor = {**config[uid]}
+    motor["angle"] = device.last_data_value if device is not None and device.last_data_value is not None else ""
+    #motor["command"] = device.last_action_value if device is not None and device.last_action_value is not None else ""
+
+    return render_template('gimyc_poc/motor_config.html', motor=motor, uid=uid)
+
+
+# @webapp.route('/echo', methods=['POST'])
+# def echo():
+#     # Récupérer les données JSON envoyées dans la requête
+#     data = request.get_json()
+
+#     # Si les données ne sont pas valides, renvoyer une erreur
+#     if data is None:
+#         return jsonify({'error': 'Invalid JSON'}), 400
+
+#     # Retourner les mêmes données reçues dans la réponse
+#     return jsonify(data)
 
 
 
@@ -184,6 +204,7 @@ def set_state():
             angle = _get_angle(safe_float(data.get("angle"),0), mode)
             if angle is not None:
                 datastore.push({dev.name: angle})
+                config[uid]["command"] = angle
             
             config[uid]["mode"] = mode
     
@@ -206,6 +227,30 @@ def set_state():
 
 
 
+# @webapp.route('/set-target', methods=['POST'])
+# def set_target():
+#     task = get_task_or_500()
+#     data = request.get_json()
+
+#     # On récupère les informations
+#     uid = data["uid"]
+#     try:
+#         angle = float(data["angle"])
+#     except ValueError:
+#         return {}, 400
+
+#     # On vérifie que l'UID est bien dans les actionneurs référencés
+#     config = task.get_config()
+#     if uid not in config:
+#         return {}, 400
+
+#     # On met à jour la référence dans la CONFIG
+#     config[uid]["target"] = angle
+#     Parameter.set(plugid=f"{request.plugid}", name="config", value=json.dumps(config))
+#     task.sync(Parameter.getDict(request.plugid))
+
+#     return {}, 200
+
 @webapp.route('/set-target', methods=['POST'])
 def set_target():
     task = get_task_or_500()
@@ -213,39 +258,39 @@ def set_target():
 
     # On récupère les informations
     uid = data["uid"]
-    try:
-        angle = float(data["angle"])
-    except ValueError:
-        return {}, 400
 
     # On vérifie que l'UID est bien dans les actionneurs référencés
     config = task.get_config()
-    if uid not in config:
+    if uid not in config or config[uid].get("angle") is None:
         return {}, 400
+    
+    # CALCUL du TARGET
+    target = 2*config[uid].get("angle") - task.get_last_theta_s()
+    
 
-    # On met à jour la référence dans la CONFIG
-    config[uid]["target"] = angle
+
+
+    config[uid]["target"] = target
     Parameter.set(plugid=f"{request.plugid}", name="config", value=json.dumps(config))
-    task.sync(Parameter.getDict(request.plugid))
 
     return {}, 200
 
-@webapp.route('/set-vertical', methods=['POST'])
-def set_vertical():
+
+@webapp.route('/set-horizontal', methods=['POST'])
+def set_horizontal():
     task = get_task_or_500()
     data = request.get_json()
 
     # On récupère les informations
     uid = data["uid"]
-    try:
-        angle = float(data["angle"])
-    except ValueError:
-        return {}, 400
 
     # On vérifie que l'UID est bien dans les actionneurs référencés
     config = task.get_config()
     if uid not in config:
         return {}, 400
+
+    config[uid]["command"] = 0
+    Parameter.set(plugid=f"{request.plugid}", name="config", value=json.dumps(config))
 
     # Expédition du topic
     from core.mqtt import publish

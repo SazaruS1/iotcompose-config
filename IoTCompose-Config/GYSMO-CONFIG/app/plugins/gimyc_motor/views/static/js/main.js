@@ -1,3 +1,8 @@
+
+
+
+
+
 function buildPayload() {
 
     const mirrors = [];
@@ -24,23 +29,17 @@ function buildPayload() {
 
 
 
-function saveState() {
-    // Sauvegarde le mode et la valeur éventuelle pour tous les actiionneurs sélectionnées
-    val = document.getElementById("angle").value || 0
-    mode = document.getElementById("mode").value || 0
-
-    json = buildPayload()
+function saveState(payload) {
+    msg = payload || buildPayload()
     const csrfToken = document.getElementById('csrf_token').value;
 
-    console.log(json)
-
-    fetch(SET_STATE, {
+    fetch(SET_STATE_URL, {
         method: 'POST', // Méthode HTTP
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': csrfToken,
         },
-        body: JSON.stringify(json),
+        body: JSON.stringify(msg),
     })
 //            .then(response => {
 //                   console.log('Réponse du serveur :', response);
@@ -54,7 +53,7 @@ function saveState() {
         () => {
             window.location.reload();
         },
-        1000)
+        100)
 }
 
 

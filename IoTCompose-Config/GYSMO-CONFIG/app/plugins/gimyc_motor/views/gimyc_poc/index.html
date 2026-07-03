@@ -20,6 +20,7 @@
                 <th scope="col">Actionneur</th>
                 <th scope="col">Angle</th>
                 <th scope="col">Mode</th>
+                <th scope="col"></th>
             </tr>
             </thead>
             <tbody>
@@ -38,7 +39,7 @@
                 {% elif value.mode == 88 %} Transparent
                 {% else %} ??? {% endif %} 
                 </td>
-
+                <td><a href="{{ dynamic_url_for('%.motor_config', uid=key) }}">⚙️</a></td>
 
             </tr>
             {% endfor %}
@@ -67,19 +68,6 @@
             <button class="btn btn-warning btn-sm" onclick="saveState()">Just Do It!</button>
             
             
-            <div  class="btn-group p-3" >
-            <button class="btn btn-primary btn-sm" onclick="">&lt;&lt;</button>
-            <button class="btn btn-primary btn-sm" onclick="">&lt;</button>
-            <button class="btn btn-primary btn-sm" onclick="">&gt;</button>
-            <button class="btn btn-primary btn-sm" onclick="">&gt;&gt;</button>
-            </div>
-            </div>
-
-
-            
-            <div style="margin: 20px 0;">
-                <button class="btn btn-danger btn-sm" onclick="setTarget()">SET AS NORMAL TARGET</button>
-                <button class="btn btn-danger btn-sm" onclick="setHorizontal()">SET HORIZON</button>
             </div>
 
             <!-- <input id="global_angle_value" type="number" value="0"><button class="btn btn-primary btn-sm" onclick="setAngleForAll()">Fixer</button>
@@ -99,13 +87,15 @@
 {% block scripts %}
     {{ super() }}
     <script id="data-store" type="application/json">{{ data | tojson }}</script>
+    
     <script>
-        const SET_STATE = '{{ dynamic_url_for("%.set_state") }}'
-        const SET_TARGET_URL = '{{ dynamic_url_for("%.set_target") }}'
-        const SET_VERTICAL_URL = '{{ dynamic_url_for("%.set_vertical") }}'
-        const SET_STATE_URL = '{{ dynamic_url_for("%.set_state") }}'
-
+        const SET_STATE_URL = '{{ dynamic_url_for("%.set_state") }}';
+        const SET_TARGET_URL = '{{ dynamic_url_for("%.set_target") }}';
+        const SET_HORIZONTAL_URL = '{{ dynamic_url_for("%.set_horizontal") }}';
         const DATA = JSON.parse(document.getElementById('data-store').textContent);
+    </script>
+
+    <script>
 
         const modeSelect = document.getElementById("mode");
         const angleInput = document.getElementById("angle");
