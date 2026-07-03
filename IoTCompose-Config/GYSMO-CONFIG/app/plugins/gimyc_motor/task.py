@@ -32,6 +32,8 @@ class GymicPocMotorControlTask(Task):
         self._az_name = ""
         self._el_name = ""
 
+        self._last_theta_s = 0
+
         self._emergency_name = None
 
         ## ON charge le JSON et on complete
@@ -133,7 +135,7 @@ class GymicPocMotorControlTask(Task):
                 mode = Mode.RANDOM
             if emergency_stop: # On force le mode random
                 logger.warning(f"Emergency Stop @ {time} -> Random")
-                mode = Mode.RANDOM
+                mode = Mode.TRANSPARENT
 
             angle = None
             if mode == Mode.RANDOM:
@@ -148,9 +150,9 @@ class GymicPocMotorControlTask(Task):
                 angle = random.uniform(-90, 90) if angle is None else angle
             elif mode == Mode.FOLLOW:
                 target = safe_float(dico.get("target"),0) # angle de référence -> pointe vers le capteur
-                angle = self._get_reflect_angle(az,el,target)
+                angle = self._get_reflect_angle(target)
             elif mode == Mode.TRANSPARENT:
-                angle = self._get_transparent_angle(az,el)
+                angle = self._get_transparent_angle()
             elif mode == Mode.FIXED:
                 pass
             else:
@@ -245,21 +247,21 @@ class GymicPocMotorControlTask(Task):
     #     Data.push({name: 0})
 
 # task = GymicPocMotorControlTask()
+    def get_last_theta_s(self):
+        az = datastore.pull(self._az_name).get(self._az_name)
+        el = datastore.pull(self._el_name).get(self._el_name)
+        if az is None or el is None:
+            return 0
+        
+        return np.degrees(
+            np.atan2(
+                np.sin(np.radians(az - self._axis)),
+                np.tan(np.radians(el))
+            )
+        )
 
-    def _get_reflect_angle(self,az, el, target):
-        theta_s = np.degrees(
-            np.atan2(
-                np.sin(np.radians(az - self._axis)),
-                np.tan(np.radians(el))
-            )
-        )
-        return 0.5 * (target + theta_s)
+    def _get_reflect_angle(self,target):
+        return 0.5 * (target + self.get_last_theta_s())
     
-    def _get_transparent_angle(self, az, el):
-        theta_s = np.degrees(
-            np.atan2(
-                np.sin(np.radians(az - self._axis)),
-                np.tan(np.radians(el))
-            )
-        )
-        return ((theta_s + 90) % 180) - 90
+    def _get_transparent_angle(self):
+        return ((self.get_last_theta_s() + 90) % 180)

@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 import dotenv
 import paho.mqtt.client as mqtt
@@ -45,11 +46,14 @@ def _build_mapping():
 # #####################################################
 # Récupération des données de configuration
 # #####################################################
-client_id = os.environ["MQTT_CLIENT_ID"]
-user = os.environ["MQTT_USER"]
-password = os.environ["MQTT_PASSWORD"]
-host = os.environ["MQTT_BROKER"]
-port = int(os.environ["MQTT_PORT"])
+client_id = os.getenv("MQTT_CLIENT_ID", "gysmo")
+user = os.getenv("MQTT_USER")
+password = os.getenv("MQTT_PASSWORD")
+host = os.getenv("MQTT_BROKER", "localhost")
+port = int(os.getenv("MQTT_PORT", "1883"))
+
+# Thread pool pour ne pas bloquer le thread réseau paho
+_executor = ThreadPoolExecutor(max_workers=4)
 
 # #####################################################
 # D&finition des différents callback
@@ -68,7 +72,9 @@ def on_connect(client, userdata, flags, reason_code, properties):
 def on_disconnect(client, userdata, flags, reason_code, properties):
     global connected
     connected = False
-    logger.warning(f"Disconected MQTT. Reason: {reason_code}")
+    logger.warning(f"Disconnected MQTT. Reason: {reason_code}")
+    if reason_code != 0:
+        logger.info("Unexpected disconnect — reconnect_delay_set handles retry")
 
 #    """Callback pour la déconnexion."""
 #    if reason_code != 0:
@@ -86,7 +92,7 @@ def on_message(client, userdata, message):
     logger.debug(f"MQTT message : {topic} -> {data} ")
     for regex, func in _mapping.items():
         if bool(regex.match(topic)):
-            func(topic,data)
+            _executor.submit(func, topic, data)
 
 def on_log(client, userdata, level, buf):
     pass
@@ -147,13 +153,13 @@ def start():
     client.on_unsubscribe = on_unsubscribe
     client.on_publish = on_publish
 
-    client.reconnect_delay_set() # force la reconnexino en cas de déconnexction
+    client.reconnect_delay_set(min_delay=1, max_delay=30) # reconnexion rapide après déconnexion
 
     # Intègre la gestion des reconnections -> inutile (et faux) de le faire à la main.
     client.loop_start()  # Démarrer la boucle de gestion des événements MQTT
 
     try:
-        client.connect(host=host, port=port, keepalive=15)
+        client.connect(host=host, port=port, keepalive=60)
     except Exception as e:
         connected = False
         logger.error(f"MQTT - Connection error: {e}")
@@ -166,6 +172,8 @@ def stop():
 
 
 def publish(topic, data):
-    global client
+    global client, connected
+    if not connected:
+        logger.warning(f"MQTT not connected, queuing {topic}={data}")
     client.publish(topic,data)
 
