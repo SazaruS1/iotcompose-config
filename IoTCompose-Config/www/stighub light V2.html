@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StigHub Light - Dashboard</title>
+    <style>
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f5f5f5;min-height:100vh;padding:30px 20px}.header{text-align:center;margin-bottom:40px}.header h1{font-size:3em;margin-bottom:10px;color:#333;font-weight:700;letter-spacing:1px}.header .subtitle{font-size:1.1em;color:#666;margin-bottom:8px}.header .tagline{font-size:.95em;color:#999}.architecture{display:grid;grid-template-columns:repeat(5,150px);grid-template-rows:auto auto;gap:25px;margin:0 auto 50px;padding:30px;background:#fff;border-radius:8px;align-items:center;justify-items:center;justify-content:center;width:fit-content;box-shadow:0 2px 8px rgba(0,0,0,.1)}.architecture-column{position:relative;display:flex;flex-direction:column;align-items:center;gap:15px}.architecture-section{display:flex;flex-direction:column;align-items:center;gap:10px}.section-title{font-size:.75em;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:#666;text-align:center;min-height:25px}.bubbles-container{display:flex;flex-direction:column;gap:8px;justify-content:center}.bubble{width:120px;height:120px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:2px solid #e0e0e0;position:relative;text-decoration:none;color:inherit;text-align:center;padding:10px}.bubble:hover{border-color:#999;box-shadow:0 2px 6px rgba(0,0,0,.15)}.bubble-icon{font-size:2em;margin-bottom:4px}.bubble-name{font-size:.7em;font-weight:600;color:#333;line-height:1.1}.bubble-port{font-size:.55em;color:#666;margin-top:2px}.bubble-address,.bubble-dns{font-size:.5em;color:#666;margin-top:1px;font-family:'Courier New',monospace}.bubble.DHCP{background:#ffebee;border-color:#ef5350}.bubble.core{background:#e0f2f1;border-color:#26a69a}.bubble.messaging{background:#ffe8d6;border-color:#ff9800}.bubble.device{background:#e8f5e9;border-color:#66bb6a}.bubble.tap200,.bubble.sensecap{background:#e3f2fd;border-color:#42a5f5}.bubble.management{background:#f3e5f5;border-color:#ab47bc}.footer{text-align:center;color:#999;margin-top:40px;padding:20px;border-top:1px solid #e0e0e0;font-size:.9em}@media (max-width:1200px){.bubble{width:110px;height:110px}.architecture{gap:20px}}@media (max-width:768px){.header h1{font-size:2.2em}.architecture{gap:15px;padding:20px}.bubble{width:100px;height:100px}.bubble-icon{font-size:1.6em}}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>StigHub</h1>
+        <p class="subtitle">Services interconnectés via Pihole </p>
+        <p class="tagline">Réseau de services accessibles </p>
+    </div>
+
+    <!-- ARCHITECTURE VISUELLE -->
+    <div style="max-width: 1400px; margin: 0 auto;">
+        <div class="architecture">
+            <!-- LIGNE 1: HOME ASSISTANT -->
+            <div class="architecture-column" style="grid-column: 1; grid-row: 1;">
+                <div class="architecture-section">
+                    <div class="bubbles-container">
+                        <a href="http://192.168.1.1:8123" target="_blank" class="bubble management">
+                            <div class="bubble-name">Home Assistant</div>
+                            <div class="bubble-port">8123 http://192.168.1.1:8123</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIGNE 1: MQTT -->
+            <div class="architecture-column" style="grid-column: 2; grid-row: 1;">
+                <div class="architecture-section">
+                    <div class="bubbles-container">
+                        <a href="http://192.168.1.1:1883" target="_blank" class="bubble messaging">
+                            <div class="bubble-name">MQTT</div>
+                            <div class="bubble-port">1883 http://192.168.1.1:1883</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIGNE 2: PIHOLE -->
+            <div class="architecture-column" style="grid-column: 1; grid-row: 2;">
+                <div class="architecture-section">
+                    <div class="bubbles-container"> 
+                        <a href="http://192.168.1.1/admin/" target="_blank" class="bubble DHCP">
+                            <div class="bubble-name">Pihole</div>
+                            <div class="bubble-port">80/443 http://192.168.1.1/admin/</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIGNE 1: CHIRPSTACK -->
+            <div class="architecture-column" style="grid-column: 3; grid-row: 1;">
+                <div class="architecture-section">
+                    <div class="bubbles-container">
+                        <a href="http://192.168.1.1:8080" target="_blank" class="bubble management">
+                            <div class="bubble-name">Chirpstack</div>
+                            <div class="bubble-port">8080 http://192.168.1.1:8080</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIGNE 1: SENSECAP -->
+            <div class="architecture-column" style="grid-column: 4; grid-row: 1;">
+                <div class="architecture-section">
+                    <div class="bubbles-container">
+                        <a href="http://192.168.1.49" target="_blank" class="bubble sensecap">
+                            <div class="bubble-name">SenseCAP M2</div>
+                            <div class="bubble-port">HTTP http://192.168.1.49</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIGNE 1: CAPTEUR LORA -->
+            <div class="architecture-column" style="grid-column: 5; grid-row: 1;">
+                <div class="architecture-section">
+                    <div class="bubbles-container">
+                        <div class="bubble device" style="cursor: default; opacity: 0.9;">
+                            <div class="bubble-name">Capteur LoRa</div>
+                            <div class="bubble-port">LoRa</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIGNE 2: GYSMO -->
+            <div class="architecture-column" style="grid-column: 2; grid-row: 2;">
+                <div class="architecture-section">
+                    <div class="bubbles-container">
+                        <a href="http://192.168.1.1:8888" target="_blank" class="bubble core">
+                            <div class="bubble-name">Gysmo</div>
+                            <div class="bubble-port">8888 http://192.168.1.1:8888</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIGNE 2: SMTP4DEV -->
+            <div class="architecture-column" style="grid-column: 3; grid-row: 2;">
+                <div class="architecture-section">
+                    <div class="bubbles-container">
+                        <a href="http://192.168.1.1:5001" target="_blank" class="bubble messaging">
+                            <div class="bubble-name">SMTP4Dev</div>
+                            <div class="bubble-port">5001 http://192.168.1.1:5001</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIGNE 2: TAP200 -->
+            <div class="architecture-column" style="grid-column: 4; grid-row: 2;">
+                <div class="architecture-section">
+                    <div class="bubbles-container">
+                        <a href="http://192.168.1.3" target="_blank" class="bubble tap200">
+                            <div class="bubble-name">Tap200</div>
+                            <div class="bubble-port">HTTP http://192.168.1.3 MDP: Admin0102!</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIGNE 2: CAPTEUR WIFI -->
+            <div class="architecture-column" style="grid-column: 5; grid-row: 2;">
+                <div class="architecture-section">
+                    <div class="bubbles-container">
+                        <a href="http://ap.stigsense" target="_blank" class="bubble device">
+                            <div class="bubble-name">Capteur WiFi</div>
+                            <div class="bubble-port">WiFi</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>StigHub Light Ver2 Avril 2026 | Services Docker et autres | Arruzas Simon</p>
+        </div>
+    </div>
+</body>
+</html>
